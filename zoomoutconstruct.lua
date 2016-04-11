@@ -1,50 +1,33 @@
 
 
 function zoomoutconstruct(net,downsample,zlayers)
-mean_pix = {103.939, 116.779, 123.68};
---Fully conv
+
+
 net:cuda() 
 net:evaluate();	
-kW = torch.Tensor(18):fill(3)
-dW = torch.Tensor(18):fill(1)
-stride = torch.Tensor(18)
-sz = torch.Tensor(18)
 
-sz[1] = 1
+
+stride = torch.Tensor(zlayers[-1])
 stride[1] = 1
-
---Moving up from layer m-1 to m:
-kW[4] =2 
-dW[4] =2
-kW[7] =2 
-dW[7] =2
-kW[11] =2 
-dW[11] =2
-kW[15] =2 
-dW[15] =2
-for i =2, 18 do
-sz[i] = sz[i-1] + (kW[i]-1)*stride[i-1]
-stride[i] = stride[i-1]*dW[i]
+lastdW = 1
+for i =2, zlayers[-1] do
+	if net:get(i).dW then 
+		lastdW = net:get(i).dW
+		stride[i] = stride[i-1]*lastdW
+	else -- for the layers that they don't have dW i.e. Relu
+		stride[i] = stride[i-1]*lastdW
+	end
 end
 
 
 
+kersize = torch.Tensor(zlayers[-1]):fill(1) -- let's fix the ker size for all layers. 
+padsize = torch.Tensor(zlayers[-1]):fill(0)
+stridesize = torch.Tensor(zlayers[-1])
 
-downsample = 4
-scale = 0
-kersize = torch.Tensor(18)
-stridesize = torch.Tensor(18)
-padsize = torch.Tensor(18)
-
-for i =1,18 do
-kersize[i] = sz[i]/stride[i]
+for i =1, zlayers[-1] do
 stridesize[i] = downsample/stride[i]
 end
-
-kersize = torch.Tensor(18):fill(1) -- let's fix the ker size for all layers. 
-padsize = torch.Tensor(18):fill(0)
--- first conv and mapping layers
-
 
 
 
@@ -52,12 +35,28 @@ C = {}
 S = {}
 iminput = nn.Identity()()
 C[1] = net:get(1)(iminput)
+counter = 1
 for i = 2, zlayers[-1] do
 	C[i] =  net:get(i)(C[i-1])
+	if i == zlayers[counter] then
+		if stridesize[i] < 1 then
+		  scale = 1/stridesize[i]
+		  stridesize[i] = 1
+		end
+		S[counter] = nn.SpatialMaxPooling(kersize[i],kersize[i],stridesize[i],stridesize[i],padsize[i],padsize[i]):cuda()(C21)
+		if scale > 1 then
+			S21 = nn.SpatialUpSamplingNearest(scale):cuda()(S21)
+		end
+		counter = counter + 1
+	end
 end
-zoomout_model = nn.gModule({iminput}, {C[zlayers[-1]]})
 
+Join = S[1]
+for i = 2, zlayers:size()[1] do
+	Join = nn.JoinTable(2):cuda()({Join,S[i]})
+end
 
+zoomout_model = nn.gModule({iminput}, {Join})
 
 
 
