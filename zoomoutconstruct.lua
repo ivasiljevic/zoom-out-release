@@ -1,6 +1,6 @@
 
 
-function zoomoutconstruct(net,downsample)
+function zoomoutconstruct(net,downsample,zlayers)
 mean_pix = {103.939, 116.779, 123.68};
 --Fully conv
 net:cuda() 
@@ -39,12 +39,31 @@ padsize = torch.Tensor(18)
 for i =1,18 do
 kersize[i] = sz[i]/stride[i]
 stridesize[i] = downsample/stride[i]
-padsize[i] = torch.ceil(kersize[i]/3)
 end
 
 kersize = torch.Tensor(18):fill(1) -- let's fix the ker size for all layers. 
 padsize = torch.Tensor(18):fill(0)
 -- first conv and mapping layers
+
+
+
+
+C = {}
+S = {}
+iminput = nn.Identity()()
+C[1] = net:get(1)(iminput)
+for i = 2, zlayers[-1] do
+	C[i] =  net:get(i)(C[i-1])
+end
+zoomout_model = nn.gModule({iminput}, {C[zlayers[-1]]})
+
+
+
+
+
+--[[
+
+
 i=2
 iminput = nn.Identity()()
 C11 = net:get(1)(iminput)
@@ -240,7 +259,7 @@ globalfeats = nn.Max(3):cuda()(globalfeats)
 
 
 
-repl1 = nn.Replicate(S53:size()[4],1):cuda()(globalfeats)
+repl1 = nn.Replicate(S53:size()[4],2):cuda()(globalfeats)
 --temp = repl:forward(concatfeats[2])();
 --repl2 = nn.Replicate(concatfeats[1]:size()[3],2):cuda()
 --globfeats = repl:forward(temp):transpose(3,1):transpose(2,4);
@@ -252,6 +271,6 @@ zoomout_model = nn.gModule({iminput}, {Join,globalfeats,repl1})
 
 
 net = nil
-
+]]--
 return zoomout_model
 end
