@@ -11,7 +11,7 @@ function load_data(filePath)
     i = 0
     for i = 1, imlist:size()[1] do
         for j = 1, imlist:size()[2]  do
-        t[j] = string.char(imlist[{i,j}])
+            t[j] = string.char(imlist[{i,j}])
         end
         s[i]=table.concat(t);
     end
@@ -21,7 +21,7 @@ function load_data(filePath)
     i = 0
     for i = 1, imlistgt:size()[1] do
         for j = 1, imlistgt:size()[2]  do
-        t[j] = string.char(imlistgt[{i,j}])
+            t[j] = string.char(imlistgt[{i,j}])
         end
         sgt[i]=table.concat(t);
     end

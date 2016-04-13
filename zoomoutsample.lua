@@ -83,5 +83,5 @@ function sparse_zoomout_features(zoomout_model, dataset, mean, std,coordinate)
 	xlua.progress(k,num_images)
 	end
 
-torch.save("sampling/sample_feats.t7",sampfeats)
+--torch.save("sampling/sample_feats.t7",sampfeats)
 end
