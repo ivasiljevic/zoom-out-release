@@ -1,7 +1,7 @@
-function load_data(filepath)
+--filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
+--filePath = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat" end
 
-    filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
-    if dataset=="val" then filePath = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat" end
+function load_data(filePath)
 
     loaded = matio.load(filePath)  --- you don't need to transpose if you use matio
     imlist = loaded.Imlist
