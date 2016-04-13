@@ -30,7 +30,7 @@ stridesize[i] = downsample/stride[i]
 end
 
 
-
+scale = 0 
 C = {}
 S = {}
 iminput = nn.Identity()()
@@ -45,7 +45,7 @@ for i = 2, zlayers[-1] do
 		end
 		S[counter] = nn.SpatialMaxPooling(kersize[i],kersize[i],stridesize[i],stridesize[i],padsize[i],padsize[i]):cuda()(C21)
 		if scale > 1 then
-			S21 = nn.SpatialUpSamplingNearest(scale):cuda()(S21)
+			S[counter] = nn.SpatialUpSamplingNearest(scale):cuda()(S[counter])
 		end
 		counter = counter + 1
 	end
@@ -58,6 +58,30 @@ end
 
 zoomout_model = nn.gModule({iminput}, {Join})
 
+
+
+repl = nn.Replicatedynamic(1):cuda()({globfeats,iminput,downsample})
+imtranspose = nn.Transpose({2, 3})(iminput)
+repl = nn.Replicatedynamic(2):cuda()({repl,imtranspose,downsample})
+--repl = nn:Transpose({3,1},{2,4})(iminput)
+test  = nn.gModule({globfeats,iminput,downsample}, {repl})
+
+
+
+globfeats = nn.Identity()()
+iminput =  nn.Identity()()
+downsample = nn.Identity()()
+repl = nn.Replicatedynamic(1)({globfeats,iminput,downsample})
+imtranspose = nn.Transpose({2, 3})(iminput)
+repl = nn.Replicatedynamic(2)({repl,imtranspose,downsample})
+output = nn.Transpose({3, 1},{2,4})(repl)
+--imtranspose = nn:Transpose({3,1})(imtranspose)
+--repl = nn:Transpose({2,4})(repl)
+test  = nn.gModule({globfeats,iminput,downsample}, {output})
+
+a= test:forward({torch.Tensor(1,4096),torch.Tensor(3,12,16),4})
+
+	
 
 
 --[[
