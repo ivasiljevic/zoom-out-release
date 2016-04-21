@@ -13,6 +13,7 @@ dofile "classifier.lua"
 dofile "Coordinate.lua"
 
 filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
+
 loadedmeanstd = torch.load(filepath)
 
 meanx = loadedmeanstd[1]

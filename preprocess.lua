@@ -1,7 +1,6 @@
+--Defines the preprocessing functions needed for zoomout model.
 
-fixedimsize = 256
-
-function preprocess(im, mean_pix)
+function preprocess(im, mean_pix,fixedimsize)
   -- rescale the image
   if im:size()[2] < im:size()[3] then
     ratio = fixedimsize/im:size()[2]
@@ -27,10 +26,7 @@ function preprocess(im, mean_pix)
   return im4
 end
 
-
-fixedwid = 336
-fixedimh = 256
-function preprocess_batch(im, mean_pix)
+function preprocess_batch(im, mean_pix,fixedwid,fixedimh)
    -- rescale the image
   imwidth = fixedwid 
   imheight= fixedimh
@@ -46,7 +42,7 @@ function preprocess_batch(im, mean_pix)
    return im4
 end
 
-function preprocess_gt(im)
+function preprocess_gt(im,fixedimsize)
   -- rescale the image
   if im:size()[1] < im:size()[2] then
     ratio = fixedimsize/im:size()[1]
@@ -63,7 +59,7 @@ function preprocess_gt(im)
   return im3
 end
 
-function preprocess_gt_batch(im)
+function preprocess_gt_batch(im,fixedwid,fixedimh)
   -- rescale the image
   imwidth = fixedwid/4
   imheight = fixedimh/4
@@ -95,7 +91,7 @@ function Bilinearkernel(filtersize, noutchannels,ninchannels)
     return output
 end
 
-function preprocess_gt_deconv(im)
+function preprocess_gt_deconv(im,fixedimsize)
   -- rescale the image
   if im:size()[1] < im:size()[2] then
     ratio = fixedimsize/im:size()[1]
