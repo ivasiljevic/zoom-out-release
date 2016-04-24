@@ -3,6 +3,17 @@
 function zoomoutconstruct(net,downsample,zlayers)
 
 
+downsample = 4
+
+zlayers = torch.Tensor(13)
+
+a = {2,4,7,9,12,14,16,19,21,23,26,28,30}
+for i=1,zlayers:size(1) do
+	zlayers[i]=a[i]
+end
+
+
+
 net:cuda() 
 net:evaluate();	
 
@@ -15,7 +26,7 @@ for i =2, zlayers[-1] do
 		lastdW = net:get(i).dW
 		stride[i] = stride[i-1]*lastdW
 	else -- for the layers that they don't have dW i.e. Relu
-		stride[i] = stride[i-1]*lastdW
+		stride[i] = stride[i-1]*lastdW		
 	end
 end
 
@@ -26,7 +37,7 @@ padsize = torch.Tensor(zlayers[-1]):fill(0)
 stridesize = torch.Tensor(zlayers[-1])
 
 for i =1, zlayers[-1] do
-stridesize[i] = downsample/stride[i]
+	stridesize[i] = downsample/stride[i]
 end
 
 
@@ -34,16 +45,17 @@ scale = 0
 C = {}
 S = {}
 iminput = nn.Identity()()
+downsamplefact = nn.Identity()()
 C[1] = net:get(1)(iminput)
 counter = 1
 for i = 2, zlayers[-1] do
 	C[i] =  net:get(i)(C[i-1])
 	if i == zlayers[counter] then
 		if stridesize[i] < 1 then
-		  scale = 1/stridesize[i]
-		  stridesize[i] = 1
+			scale = 1/stridesize[i]
+			stridesize[i] = 1
 		end
-		S[counter] = nn.SpatialMaxPooling(kersize[i],kersize[i],stridesize[i],stridesize[i],padsize[i],padsize[i]):cuda()(C21)
+		S[counter] = nn.SpatialMaxPooling(kersize[i],kersize[i],stridesize[i],stridesize[i],padsize[i],padsize[i]):cuda()(C[i])
 		if scale > 1 then
 			S[counter] = nn.SpatialUpSamplingNearest(scale):cuda()(S[counter])
 		end
@@ -56,28 +68,48 @@ for i = 2, zlayers:size()[1] do
 	Join = nn.JoinTable(2):cuda()({Join,S[i]})
 end
 
-zoomout_model = nn.gModule({iminput}, {Join})
+C61 = net:get(31)(C[zlayers[-1]])  -- avg pool
+C61 = net:get(32)(C61) 
+--suppixinput19 = padmod:get(1)(suppixinput18)
+C61 = net:get(33)(C61) -- relu
+-- suppix mapping
+--S61 = nn.suppixavgpool_table()({C61,suppixinput19})
+
+C71 = net:get(34)(C61) -- dropout
+C71 = net:get(35)(C71) 
+C71 = net:get(36)(C71) -- relu
+
+globalfeats = nn.Max(4):cuda()(C71)
+globalfeats = nn.Max(3):cuda()(globalfeats)
+--zoomout_model = nn.gModule({iminput}, {Join,globalfeats})
 
 
 
-repl = nn.Replicatedynamic(1):cuda()({globfeats,iminput,downsample})
-imtranspose = nn.Transpose({2, 3})(iminput)
-repl = nn.Replicatedynamic(2):cuda()({repl,imtranspose,downsample})
---repl = nn:Transpose({3,1},{2,4})(iminput)
-test  = nn.gModule({globfeats,iminput,downsample}, {repl})
+repl = nn.Replicatedynamic(1,4):cuda()({globalfeats,iminput})
+imtranspose = nn.Transpose({3, 4}):cuda()(iminput)
+repl = nn.Replicatedynamic(2,4):cuda()({repl,imtranspose})
+output = nn.Transpose({3, 1},{2,4}):cuda()(repl)
+Join = nn.JoinTable(2):cuda()({Join,output})
+zoomout_model = nn.gModule({iminput}, {Join, globalfeats})
+
+concatfeats = zoomout_model:forward(im_proc:cuda())
 
 
 
-globfeats = nn.Identity()()
-iminput =  nn.Identity()()
+
+--globfeats = nn.Identity()()
+--iminput =  nn.Identity()()
 downsample = nn.Identity()()
 repl = nn.Replicatedynamic(1)({globfeats,iminput,downsample})
 imtranspose = nn.Transpose({2, 3})(iminput)
 repl = nn.Replicatedynamic(2)({repl,imtranspose,downsample})
 output = nn.Transpose({3, 1},{2,4})(repl)
+output = nn.Transpose({4,3})(output)
 --imtranspose = nn:Transpose({3,1})(imtranspose)
 --repl = nn:Transpose({2,4})(repl)
-test  = nn.gModule({globfeats,iminput,downsample}, {output})
+--test  = nn.gModule({globfeats,iminput,downsample}, {output})
+
+test  = nn.gModule({iminput,downsample}, {output})
 
 a= test:forward({torch.Tensor(1,4096),torch.Tensor(3,12,16),4})
 

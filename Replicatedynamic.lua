@@ -1,15 +1,16 @@
 local Replicatedynamic, parent = torch.class('nn.Replicatedynamic','nn.Module')
 
-function Replicatedynamic:__init(dim, ndim)
+function Replicatedynamic:__init(dim, downsample, ndim)
    parent.__init(self)
    --self.nfeatures = nf
    self.dim = dim or 1
    self.ndim = ndim
+   self.downsample = downsample or 1
    assert(self.dim > 0, "Can only replicate across positive integer dimensions.")
 end
 
 function Replicatedynamic:updateOutput(input)
-   self.nfeatures = input[2]:size(3)/input[3]
+   self.nfeatures = input[2]:size(3)/self.downsample
    self.dim = self.dim or 1 --backwards compatible
    input = input[1]
    assert(
