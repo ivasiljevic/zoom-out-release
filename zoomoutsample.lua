@@ -1,5 +1,5 @@
 
-function sparse_zoomout_features(zoomout_model, dataset, mean, std,coordinate)
+function sparse_zoomout_features(zoomout_model, train_data,train_gt, mean, std)--,coordinate)
 	--[[
 	Extract sparse set of features from zoomout_model.
 	zoomout_model:
@@ -8,8 +8,8 @@ function sparse_zoomout_features(zoomout_model, dataset, mean, std,coordinate)
 	coordinate: Specify optional coordinate tensors.
 	--]]
 
-	std = std or torch.Tensor(8320)
-	mean = mean or torch.Tensor(8320)
+	std = std or torch.Tensor(8320):fill(0)
+	mean = mean or torch.Tensor(8320):fill(0)
 	--std = torch.load("samp_std.t7"):squeeze()
 	--mean = torch.load("samp_mean.t7"):squeeze()
 
@@ -18,19 +18,19 @@ function sparse_zoomout_features(zoomout_model, dataset, mean, std,coordinate)
 		std[i] = 1
 		end
 	end
-
-	num_images = dataset:size()
+    coordinate = false
+	num_images = table.getn(train_data)
 
 	local samplabels = torch.DoubleTensor(num_images*600):zero():float()
-	local sampfeats = torch.DoubleTensor(num_images*600,8322):zero():float()
+	local sampfeats = torch.DoubleTensor(num_images*600,8320):zero():float()
 
 	for k=1,num_images do
 		collectgarbage()
 		local counter = 0
 		local flagcl = torch.Tensor(21):fill(0);
 
-		local im = image.load(s[k])
-		local loaded = matio.load(sgt[k]) 
+		local im = image.load(train_data[k])
+		local loaded = matio.load(train_gt[k]) 
 		local im_proc_temp = preprocess(im,mean_pix)
 
 		local im_proc = torch.Tensor(1,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
@@ -83,5 +83,7 @@ function sparse_zoomout_features(zoomout_model, dataset, mean, std,coordinate)
 	xlua.progress(k,num_images)
 	end
 
---torch.save("sampling/sample_feats.t7",sampfeats)
+return sampfeats
+
 end
+

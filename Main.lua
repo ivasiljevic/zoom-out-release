@@ -8,9 +8,8 @@ matio = require 'matio'
 require 'loadcaffe'
 require 'xlua'    -- xlua provides useful tools, like progress bars
 require 'optim' 
-dofile "Dataset.lua"
-dofile "classifier.lua"
-dofile "Coordinate.lua"
+dofile "zoomoutsample.lua"
+dofile "dataset.lua"
 
 filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 
@@ -25,6 +24,19 @@ for i=1, stdx:size()[1] do
     end
 end 
 
+filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
+------------------
+--Sampling Model--
+------------------
+dofile "temp_zoomout.lua"
+train_data,train_gt = load_data(filePath)
+samp = sparse_zoomout_features(zoomout_model,train_data,train_gt,meanx,stdx)
+--torch.save("sampling/sampfeats.t7",sampfeats)
+
+--------------------
+--Zoomout Training--
+--------------------
+--[[
 batchsize = 1 
 datasetlabels = torch.Tensor(batchsize,fixedimh,fixedwid)
 im_proc = torch.Tensor(batchsize,3,fixedimh,fixedwid)
@@ -96,3 +108,4 @@ for jj=1, numimages do
     train()
     trainData = nil
 end
+--]]

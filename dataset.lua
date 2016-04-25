@@ -1,5 +1,4 @@
-filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
---filePath = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat" end
+--Load data from disk.
 
 function load_data(filePath)
 
@@ -29,4 +28,5 @@ function load_data(filePath)
     imlist = s
     imlistgt = sgt
     numimages = #imlist
+    return s, sgt
 end
