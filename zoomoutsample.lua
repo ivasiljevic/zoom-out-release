@@ -1,9 +1,10 @@
 
-function sparse_zoomout_features(zoomout_model, train_data,train_gt, mean, std)--,coordinate)
+function sparse_zoomout_features(zoomout_model, train_data,train_gt, pixels, mean, std)--,coordinate)
 	--[[
 	Extract sparse set of features from zoomout_model.
 	zoomout_model:
 	dataset: 
+    pixels: number of pixels sampled per image
 	mean/sd: Optional mean/variance normalization to improve features.
 	coordinate: Specify optional coordinate tensors.
 	--]]
@@ -21,8 +22,8 @@ function sparse_zoomout_features(zoomout_model, train_data,train_gt, mean, std)-
     coordinate = false
 	num_images = table.getn(train_data)
 
-	local samplabels = torch.DoubleTensor(num_images*100):zero():float()
-	local sampfeats = torch.DoubleTensor(num_images*100,8320):zero():float()
+	local samplabels = torch.DoubleTensor(num_images*pixels):zero():float()
+	local sampfeats = torch.DoubleTensor(num_images*pixels,8320):zero():float()
 
 	for k=1,num_images do
 		collectgarbage()

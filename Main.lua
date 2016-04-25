@@ -34,10 +34,10 @@ filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-a
 --Sampling Model--
 ------------------
 dofile "temp_zoomout.lua"
+pixels = 100
 train_data,train_gt = load_data(filePath)
-samp = sparse_zoomout_features(zoomout_model,train_data,train_gt,meanx,stdx)
+samp = sparse_zoomout_features(zoomout_model,train_data,train_gt,pixels,meanx,stdx)
 torch.save("sampling/sampfeats.t7",samp)
-
 --------------------
 --Zoomout Training--
 --------------------
