@@ -10,8 +10,13 @@ require 'xlua'    -- xlua provides useful tools, like progress bars
 require 'optim' 
 dofile "zoomoutsample.lua"
 dofile "dataset.lua"
+dofile "preprocess.lua"
 
 filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
+
+fixedimsize = 256
+fixedwid = 336
+fixedimh = 256
 
 loadedmeanstd = torch.load(filepath)
 
@@ -31,7 +36,7 @@ filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-a
 dofile "temp_zoomout.lua"
 train_data,train_gt = load_data(filePath)
 samp = sparse_zoomout_features(zoomout_model,train_data,train_gt,meanx,stdx)
---torch.save("sampling/sampfeats.t7",sampfeats)
+torch.save("sampling/sampfeats.t7",samp)
 
 --------------------
 --Zoomout Training--

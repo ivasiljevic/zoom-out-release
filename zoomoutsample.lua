@@ -21,8 +21,8 @@ function sparse_zoomout_features(zoomout_model, train_data,train_gt, mean, std)-
     coordinate = false
 	num_images = table.getn(train_data)
 
-	local samplabels = torch.DoubleTensor(num_images*600):zero():float()
-	local sampfeats = torch.DoubleTensor(num_images*600,8320):zero():float()
+	local samplabels = torch.DoubleTensor(num_images*100):zero():float()
+	local sampfeats = torch.DoubleTensor(num_images*100,8320):zero():float()
 
 	for k=1,num_images do
 		collectgarbage()
@@ -69,7 +69,7 @@ function sparse_zoomout_features(zoomout_model, train_data,train_gt, mean, std)-
 			for j = 1, datasetlabels:size()[2] do
 				clabel = torch.squeeze(datasetlabels[{{randi[i]},{randj[j]}}])
 
-				if flagcl[clabel] < 100 then
+				if flagcl[clabel] < 25 then
 					counter = counter + 1
 					sampfeats[{{counter},{}}] = Join[{{1},{},{randi[i]},{randj[j]}}]:squeeze():float()
 					samplabels[counter] = clabel
@@ -83,7 +83,7 @@ function sparse_zoomout_features(zoomout_model, train_data,train_gt, mean, std)-
 	xlua.progress(k,num_images)
 	end
 
-return sampfeats
+    return sampfeats
 
 end
 
