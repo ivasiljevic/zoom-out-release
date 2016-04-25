@@ -11,6 +11,61 @@ require 'optim'
 dofile "zoomoutsample.lua"
 dofile "dataset.lua"
 dofile "preprocess.lua"
+dofile "train.lua"
+dofile "zoomoutclassifier.lua"
+
+opt = nil
+if not opt then
+   print '==> processing options'
+   cmd = torch.CmdLine()
+   cmd:text()
+   cmd:text('SVHN Training/Optimization')
+   cmd:text()
+   cmd:text('Options:')
+   cmd:option('-save', 'results', 'subdirectory to save/log experiments in')
+   cmd:option('-visualize', false, 'visualize input data and weights during training')
+   cmd:option('-plot', false, 'live plot')
+   cmd:option('-optimization', 'SGD', 'optimization method: SGD | ASGD | CG | LBFGS')
+   cmd:option('-learningRate', 1e-3, 'learning rate at t=0')
+   cmd:option('-batchSize', 1, 'mini-batch size (1 = pure stochastic)')
+   cmd:option('-weightDecay', 1e-3, 'weight decay (SGD only)')
+   cmd:option('-momentum', 0.9, 'momentum (SGD only)')
+   cmd:option('-t0', 1, 'start averaging at t0 (ASGD only), in nb of epochs')
+   cmd:option('-maxIter', 2, 'maximum nb of iterations for CG and LBFGS')
+   cmd:text()
+   opt = cmd:parse(arg or {})
+end
+print '==> defining some tools'
+
+-- classes
+classes = {'1','2','3','4','5','6','7','8','9','10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'}
+
+-- This matrix records the current confusion across classes
+confusion = optim.ConfusionMatrix(classes)
+
+
+-- Log results to files
+--trainLogger = optim.Logger(paths.concat(opt.save, 'train.log'))
+--testLogger = optim.Logger(paths.concat(opt.save, 'test.log'))
+
+-- Retrieve parameters and gradients:
+-- this extracts and flattens all the trainable parameters of the mode
+-- into a 1-dim vector
+if model then
+   parameters,gradParameters = model:getParameters()
+end
+
+
+optimState = nil
+optimState = {
+  learningRate = opt.learningRate,
+  weightDecay = opt.weightDecay,
+  momentum = opt.momentum,
+  dampening = 0.0,
+  learningRateDecay = 0
+}
+optimMethod = optim.sgd
+
 
 filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 
