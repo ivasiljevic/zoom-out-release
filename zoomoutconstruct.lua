@@ -3,13 +3,6 @@
 function zoomoutconstruct(net,downsample,zlayers,global)
 
 
-downsample = 4
-
-zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36}
-
-
-
-
 net:cuda() 
 net:evaluate();	
 
