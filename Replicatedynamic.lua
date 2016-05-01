@@ -42,6 +42,7 @@ function Replicatedynamic:updateOutput(input)
 end
 
 function Replicatedynamic:updateGradInput(input, gradOutput)
+   input = input[1];
    self.gradInput:resizeAs(input):zero()
    local batchOffset = self.ndim and input:dim() > self.ndim and 1 or 0
    local rdim = self.dim + batchOffset
