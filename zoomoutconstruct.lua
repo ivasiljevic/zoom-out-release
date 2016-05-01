@@ -1,8 +1,8 @@
 
 
-function zoomoutconstruct(net,downsample,zlayers,global)
+function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 
-
+clsmodel:cuda()
 net:cuda() 
 net:evaluate();	
 
@@ -75,10 +75,10 @@ if global == 1 then
 	repl = nn.Replicatedynamic(2,4):cuda()({repl,imtranspose})
 	output = nn.Transpose({3, 1},{2,4}):cuda()(repl)
 	Join = nn.JoinTable(2):cuda()({Join,output})
-	zoomout_model = nn.gModule({iminput}, {Join})
-else
-	zoomout_model = nn.gModule({iminput}, {Join})
 end
+
+output = clsmodel(Join)
+zoomout_model = nn.gModule({iminput}, {output})
 
 return zoomout_model
 end
