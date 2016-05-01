@@ -37,30 +37,24 @@ nlabels = 21
 nhiddenunits = 1000
 inputsize = 8320
 
-datasetlabels = torch.Tensor(batchsize,fixedimh,fixedwid)
-im_proc = torch.Tensor(batchsize,3,fixedimh,fixedwid)
+--[[
 local im = image.load(train_data[1])
 im_proc_temp = preprocess(im:clone(),mean_pix)
 im_proc = torch.Tensor(1,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
+--]]
 
-zoomout_model = zoomoutconstruct(net,downsample,zlayers,global)
-classifier = zoomoutclassifier(zoomout_model,origstride,nlabels,nhiddenunits,inputsize)
+--Set up the zoomout network
+classifier = zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
+zoomout_model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
 
-temp = classifier:forward(im_proc:cuda())
 
---[[
+
 -- classes
 classes = {'1','2','3','4','5','6','7','8','9','10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'}
 
 -- This matrix records the current confusion across classes
 confusion = optim.ConfusionMatrix(classes)
 
-
--- Log results to files
---trainLogger = optim.Logger(paths.concat(opt.save, 'train.log'))
---testLogger = optim.Logger(paths.concat(opt.save, 'test.log'))
-
--- Retrieve parameters and gradients:
 -- this extracts and flattens all the trainable parameters of the mode
 -- into a 1-dim vector
 if model then
@@ -70,9 +64,9 @@ end
 
 optimState = nil
 optimState = {
-  learningRate = opt.learningRate,
-  weightDecay = opt.weightDecay,
-  momentum = opt.momentum,
+  learningRate = 1e-4,
+  weightDecay = 1e-4,
+  momentum = 0.9,
   dampening = 0.0,
   learningRateDecay = 0
 }
@@ -96,19 +90,20 @@ for i=1, stdx:size()[1] do
     end
 end 
 
-filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 ------------------
 --Sampling Model--
 ------------------
+--[[
 dofile "temp_zoomout.lua"
 pixels = 100
 train_data,train_gt = load_data(filePath)
 samp = sparse_zoomout_features(zoomout_model,train_data,train_gt,pixels,meanx,stdx)
 torch.save("sampling/sampfeats.t7",samp)
+--]]
 --------------------
 --Zoomout Training--
 --------------------
---[[
+
 batchsize = 1 
 datasetlabels = torch.Tensor(batchsize,fixedimh,fixedwid)
 im_proc = torch.Tensor(batchsize,3,fixedimh,fixedwid)
@@ -118,8 +113,8 @@ rand = torch.randperm(numimages)
 for jj=1, numimages do
     collectgarbage()
     index = rand[jj]
-    local im = image.load(s[index])
-    local loaded = matio.load(sgt[index]) -- be carefull, Transpose!!
+    local im = image.load(train_data[index])
+    local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
 
     if torch.randperm(2)[2]==2 then
     im_proc_temp = preprocess(image.hflip(im:clone()),mean_pix)
@@ -137,22 +132,9 @@ for jj=1, numimages do
     gt_proc = torch.Tensor(1,gt_temp:size()[1],gt_temp:size()[2])
     gt_proc[{{1},{},{}}] =  gt_temp
     end
+    
+    train(zoomout_model, im_proc:cuda(), gt_proc:cuda())
 
-    local concatfeats = zoomout_model:forward(im_proc:cuda())
-    local repl = nn.Replicate(concatfeats[1]:size()[4],1):cuda()
-    local temp = repl:forward(concatfeats[2]);
-    local repl = nn.Replicate(concatfeats[1]:size()[3],2):cuda()
-    local globfeats = repl:forward(temp):transpose(3,1):transpose(2,4)
-    local Join = nn.JoinTable(2):cuda():forward({concatfeats[1], globfeats})
-
-    for tt =1, Join:size()[2] do
-        Join[{{},{tt},{},{}}]:add(-meanx[tt])
-        Join[{{},{tt},{},{}}]:div(stdx[tt])
-    end
-
-    local dat = torch.cat(Join:float(),y,2)
-    dat = torch.cat(dat, x,2)
-    globfeats = nil
     gt_temp = nil
     repl = nil
     temp = nil
@@ -162,16 +144,7 @@ for jj=1, numimages do
     Join = nil
 
     collectgarbage()
-    trsize = batchsize
-    trainData = {
-        data = dat,
-        labels = gt_proc,
-        size = function() return trsize end
-        }
-    dat = nil
     gt_proc = nil
     collectgarbage()
-    train()
-    trainData = nil
 end
---]]
+

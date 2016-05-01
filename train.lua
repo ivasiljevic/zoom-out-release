@@ -1,6 +1,6 @@
 --opt.type = 'cuda'
 
-function train()
+function train(model,inputs, targets)
 -- epoch tracker
     epoch = epoch or 1
 -- local vars
@@ -8,23 +8,9 @@ function train()
 -- set model to training mode (for modules that differ in training and testing, like Dropout)
     model:training()
 -- shuffle at each epoch
-    shuffle = torch.randperm(trsize)
 -- do one epoch
     print('==> doing epoch on training data:')
-    print("==> online epoch # " .. epoch .. ' [batchSize = ' .. opt.batchSize .. ']')
-    for t = 1,trainData:size(),opt.batchSize do
--- disp progress
-        xlua.progress(t, trainData:size())
--- create mini batch
-        local inputs = torch.CudaTensor(math.min(t+opt.batchSize,trainData:size()+1)-t, trainData.data:size()[2],trainData.data:size()[3],trainData.data:size()[4])
-        local targets = torch.CudaTensor(math.min(t+opt.batchSize,trainData:size()+1)-t, trainData.labels:size()[2], trainData.labels:size()[3])
-        count=0
-        for i = t,math.min(t+opt.batchSize-1,trainData:size()) do
-            count=count+1
--- load new sample
-            inputs[{{count},{},{},{}}] = trainData.data[{{shuffle[i]},{},{},{}}]
-            targets[{{count},{},{}}] = trainData.labels[{{shuffle[i]},{},{}}]
-        end
+    print("==> online epoch # " .. epoch ..']')
 -- create closure to evaluate f(X) and df/dX
         local feval = function(x)
 -- get new parameters
@@ -40,6 +26,7 @@ function train()
         f = criterion:forward(output, targets)
         local df_do = criterion:backward(output, targets);
         model:backward(inputs, df_do);
+--[[
         if epoch%20 == 1 then
 
         local a = output[1]
@@ -51,7 +38,7 @@ function train()
         a=nil
         b=nil
     end
-
+--]]
     return f,gradParameters
 end
 -- optimize on current mini-batch
@@ -60,17 +47,18 @@ end
     else
         optimMethod(feval, parameters, optimState)
     end
-    end
+   
 -- time taken
 --time = sys.clock() - time
 --time = time / trainData:size()
 --print("\n==> time to learn 1 sample = " .. (time*1000) .. 'ms')
 -- print confusion matrix
-    if epoch%20 == 1 then
-        print(confusion)
-    end
+--    if epoch%20 == 1 then
+--        print(confusion)
+--    end
 --end
 -- save/log current net
+--[[
     local filename = paths.concat(opt.save, 'model2.net')
     os.execute('mkdir -p ' .. sys.dirname(filename))
 --print('==> saving model to '..filename)
@@ -81,6 +69,7 @@ end
 -- next epoch
     if epoch %40 == 1 then confusion:zero() end
 --confusion:zero()
+--]]
     epoch = epoch + 1
 end
 
