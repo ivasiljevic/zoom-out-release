@@ -4,39 +4,51 @@ require 'image'
 require 'nn'      
 require 'cunn'
 require 'mattorch'
+require 'cudnn'
 matio = require 'matio'
 require 'loadcaffe'
 require 'xlua'    -- xlua provides useful tools, like progress bars
 require 'optim' 
-dofile "zoomoutsample.lua"
 dofile "dataset.lua"
 dofile "preprocess.lua"
 dofile "train.lua"
+dofile "zoomoutconstruct.lua"
 dofile "zoomoutclassifier.lua"
+require('Replicatedynamic.lua')
 
-opt = nil
-if not opt then
-   print '==> processing options'
-   cmd = torch.CmdLine()
-   cmd:text()
-   cmd:text('SVHN Training/Optimization')
-   cmd:text()
-   cmd:text('Options:')
-   cmd:option('-save', 'results', 'subdirectory to save/log experiments in')
-   cmd:option('-visualize', false, 'visualize input data and weights during training')
-   cmd:option('-plot', false, 'live plot')
-   cmd:option('-optimization', 'SGD', 'optimization method: SGD | ASGD | CG | LBFGS')
-   cmd:option('-learningRate', 1e-3, 'learning rate at t=0')
-   cmd:option('-batchSize', 1, 'mini-batch size (1 = pure stochastic)')
-   cmd:option('-weightDecay', 1e-3, 'weight decay (SGD only)')
-   cmd:option('-momentum', 0.9, 'momentum (SGD only)')
-   cmd:option('-t0', 1, 'start averaging at t0 (ASGD only), in nb of epochs')
-   cmd:option('-maxIter', 2, 'maximum nb of iterations for CG and LBFGS')
-   cmd:text()
-   opt = cmd:parse(arg or {})
-end
-print '==> defining some tools'
+--Setting up the zoomout mode
+model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet/VGG_ILSVRC_16_layers_fullconv.caffemodel';
+config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
 
+net = loadcaffe.load(config_file, model_file)
+
+filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
+train_data, train_gt = load_data(filePath)
+mean_pix = {103.939, 116.779, 123.68};
+fixedimh = 256
+fixedwid = 336
+fixedimsize = 256
+downsample = 4
+zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36}
+global = 1
+batchsize = 1 
+origstride =4
+nlabels = 21  
+nhiddenunits = 1000
+inputsize = 8320
+
+datasetlabels = torch.Tensor(batchsize,fixedimh,fixedwid)
+im_proc = torch.Tensor(batchsize,3,fixedimh,fixedwid)
+local im = image.load(train_data[1])
+im_proc_temp = preprocess(im:clone(),mean_pix)
+im_proc = torch.Tensor(1,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
+
+zoomout_model = zoomoutconstruct(net,downsample,zlayers,global)
+classifier = zoomoutclassifier(zoomout_model,origstride,nlabels,nhiddenunits,inputsize)
+
+temp = classifier:forward(im_proc:cuda())
+
+--[[
 -- classes
 classes = {'1','2','3','4','5','6','7','8','9','10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'}
 
@@ -137,12 +149,6 @@ for jj=1, numimages do
         Join[{{},{tt},{},{}}]:add(-meanx[tt])
         Join[{{},{tt},{},{}}]:div(stdx[tt])
     end
-
-    local cord_x = coordinate_x(Join:size()[3],Join:size()[4])
-    local cord_y = coordinate_y(Join:size()[3],Join:size()[4])
-
-    local x = cord_x:resize(1,1,Join:size()[3],Join:size()[4])
-    local y = cord_y:resize(1,1,Join:size()[3],Join:size()[4])
 
     local dat = torch.cat(Join:float(),y,2)
     dat = torch.cat(dat, x,2)
