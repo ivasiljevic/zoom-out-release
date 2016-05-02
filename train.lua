@@ -1,4 +1,4 @@
---opt.type = 'cuda'
+--Zoomout model training.
 
 function train(model,inputs, targets)
 -- epoch tracker

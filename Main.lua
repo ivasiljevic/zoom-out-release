@@ -37,16 +37,12 @@ nlabels = 21
 nhiddenunits = 1000
 inputsize = 8320
 
---[[
-local im = image.load(train_data[1])
-im_proc_temp = preprocess(im:clone(),mean_pix)
-im_proc = torch.Tensor(1,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
---]]
 
 --Set up the zoomout network
 classifier = zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
 zoomout_model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
-
+classifier = nil
+net = nil
 
 
 -- classes
@@ -57,8 +53,8 @@ confusion = optim.ConfusionMatrix(classes)
 
 -- this extracts and flattens all the trainable parameters of the mode
 -- into a 1-dim vector
-if model then
-   parameters,gradParameters = model:getParameters()
+if zoomout_model then
+   parameters,gradParameters = zoomout_model:getParameters()
 end
 
 
@@ -78,7 +74,7 @@ filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalme
 fixedimsize = 256
 fixedwid = 336
 fixedimh = 256
-
+--[[
 loadedmeanstd = torch.load(filepath)
 
 meanx = loadedmeanstd[1]
@@ -142,8 +138,6 @@ for jj=1, numimages do
     concatfeats = nil
     im_proc = nil
     Join = nil
-
-    collectgarbage()
     gt_proc = nil
     collectgarbage()
 end
