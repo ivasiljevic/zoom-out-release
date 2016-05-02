@@ -43,6 +43,9 @@ end
 
 function Replicatedynamic:updateGradInput(input, gradOutput)
    input1 = input[1];
+   if torch.type(self.gradInput)=='table' then
+		self.gradInput=self.gradInput[1]
+	end
    self.gradInput:resizeAs(input1):zero()
    local batchOffset = self.ndim and input1:dim() > self.ndim and 1 or 0
    local rdim = self.dim + batchOffset
