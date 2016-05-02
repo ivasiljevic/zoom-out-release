@@ -23,9 +23,15 @@ function train(model,inputs, targets)
         local f = 0
 -- evaluate function for complete mini batch
         local output = model:forward(inputs);
+        --temp = classifier:forward(output)
         f = criterion:forward(output, targets)
+        print(f)
+--        f = criterion:forward(temp,targets)
         local df_do = criterion:backward(output, targets);
         model:backward(inputs, df_do);
+        --local df_do = criterion:backward(temp, targets)
+       -- class = classifier:backward(output, df_do)
+        --model:backward(inputs, class)
 --[[
         if epoch%20 == 1 then
 

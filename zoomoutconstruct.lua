@@ -77,6 +77,7 @@ if global == 1 then
 	Join = nn.JoinTable(2):cuda()({Join,output})
 end
 
+--output = Join
 output = clsmodel(Join)
 zoomout_model = nn.gModule({iminput}, {output})
 
