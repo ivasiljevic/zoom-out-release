@@ -60,8 +60,8 @@ end
 
 optimState = nil
 optimState = {
-  learningRate = 1e-4,
-  weightDecay = 1e-4,
+  learningRate = 0.001,
+  weightDecay = 0.0,
   momentum = 0.9,
   dampening = 0.0,
   learningRateDecay = 0
@@ -74,7 +74,7 @@ filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalme
 fixedimsize = 256
 fixedwid = 336
 fixedimh = 256
---[[
+
 loadedmeanstd = torch.load(filepath)
 
 meanx = loadedmeanstd[1]

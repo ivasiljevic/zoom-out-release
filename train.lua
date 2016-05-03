@@ -64,8 +64,8 @@ end
 --    end
 --end
 -- save/log current net
---[[
-    local filename = paths.concat(opt.save, 'model2.net')
+
+    local filename = paths.concat('results', 'model.net')
     os.execute('mkdir -p ' .. sys.dirname(filename))
 --print('==> saving model to '..filename)
     if epoch% 1000 == 0 then 
@@ -73,9 +73,9 @@ end
     model:cuda() 
     end
 -- next epoch
-    if epoch %40 == 1 then confusion:zero() end
+--    if epoch %40 == 1 then confusion:zero() end
 --confusion:zero()
---]]
+
     epoch = epoch + 1
 end
 
