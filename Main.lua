@@ -37,10 +37,39 @@ nlabels = 21
 nhiddenunits = 1000
 inputsize = 8320
 
-
 --Set up the zoomout network
-classifier = zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
+--]classifier = zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
+--classifier = torch.load("results/model.net")
+--The issue:
+classifier = torch.load('/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7')
 zoomout_model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
+--[[
+W = Bilinearkernel(origstride*2,nlabels,nlabels)  -- initailization to bilinear upsampling
+zoomout_model.modules[76]:get(8).weight= W
+zoomout_model.modules[76]:get(8).bias:fill(0);
+--]]
+zoomout_model = zoomout_model:cuda()
+
+filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
+loadedmeanstd = torch.load(filepath)
+--[[
+meanx = loadedmeanstd[1]
+stdx = loadedmeanstd[2]
+
+for i=1, stdx:size()[1] do
+    if stdx[i]==0 then
+    stdx[i]=1;
+    end
+end 
+
+--zoomout_model.modules[76]:get(1).weight:fill(1)
+--zoomout_model.modules[76]:get(1).bias:fill(0)
+
+for tt =1, 1000 do
+zoomout_model.modules[76]:get(1).bias[tt] = -meanx[tt]
+zoomout_model.modules[76]:get(1).weight[{{tt},{}}]:div(stdx[tt])
+end
+--]]
 classifier = nil
 net = nil
 
