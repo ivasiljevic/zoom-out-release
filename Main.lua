@@ -42,17 +42,24 @@ inputsize = 8320
 --classifier = torch.load("results/model.net")
 --The issue:
 classifier = torch.load('/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7')
-zoomout_model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
---[[
-W = Bilinearkernel(origstride*2,nlabels,nlabels)  -- initailization to bilinear upsampling
-zoomout_model.modules[76]:get(8).weight= W
-zoomout_model.modules[76]:get(8).bias:fill(0);
---]]
-zoomout_model = zoomout_model:cuda()
+batch_norm = nn.BatchNormalization(inputsize)
+l1 = nn.View(inputsize,64*84)
+l2 = nn.Transpose({1,2})
+l3 = nn.Transpose({1,2})
+l4 = nn.View(inputsize,64,84)
+l5 = nn.View(1,inputsize,64,84)
+
+classifier:insert(l1,1)
+classifier:insert(l2,2)
+classifier:insert(batch_norm,3)
+classifier:insert(l3,4)
+classifier:insert(l4,5)
+classifier:insert(l5,6)
+
 
 filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 loadedmeanstd = torch.load(filepath)
---[[
+
 meanx = loadedmeanstd[1]
 stdx = loadedmeanstd[2]
 
@@ -60,15 +67,31 @@ for i=1, stdx:size()[1] do
     if stdx[i]==0 then
     stdx[i]=1;
     end
-end 
-
---zoomout_model.modules[76]:get(1).weight:fill(1)
---zoomout_model.modules[76]:get(1).bias:fill(0)
-
-for tt =1, 1000 do
-zoomout_model.modules[76]:get(1).bias[tt] = -meanx[tt]
-zoomout_model.modules[76]:get(1).weight[{{tt},{}}]:div(stdx[tt])
 end
+
+classifier:get(3).weight = classifier:get(3).weight:fill(1)
+
+for tt=1,inputsize do
+classifier:get(3).weight[tt] = classifier:get(3).weight[tt]/stdx[tt]
+classifier:get(3).bias[tt] = -meanx[tt]
+end
+
+zoomout_model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
+criterion = cudnn.SpatialCrossEntropyCriterion()
+criterion:cuda()
+
+--[[
+W = Bilinearkernel(origstride*2,nlabels,nlabels)  -- initailization to bilinear upsampling
+zoomout_model.modules[76]:get(8).weight= W
+zoomout_model.modules[76]:get(8).bias:fill(0);
+--]]
+zoomout_model = zoomout_model:cuda()
+model = zoomout_model
+--dofile "val.lua"
+--validate(model)
+
+
+
 --]]
 classifier = nil
 net = nil
@@ -89,14 +112,13 @@ end
 
 optimState = nil
 optimState = {
-  learningRate = 0.001,
+  learningRate = 0.0001,
   weightDecay = 0.0,
   momentum = 0.9,
   dampening = 0.0,
-  learningRateDecay = 0
+  learningRateDecay = 1e-3
 }
 optimMethod = optim.sgd
-
 
 filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 

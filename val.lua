@@ -1,3 +1,5 @@
+
+
 require 'nngraph'
 require 'torch'   
 require 'image'   
@@ -20,6 +22,8 @@ mean_pix = {103.939, 116.779, 123.68};
 fixedimh = 256
 fixedwid = 336
 fixedimsize = 256
+
+--model = torch.load('/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7')
 
 dofile "dataset.lua"
 filePath = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
