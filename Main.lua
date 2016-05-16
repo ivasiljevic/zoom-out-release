@@ -17,13 +17,16 @@ dofile "zoomoutconstruct.lua"
 dofile "zoomoutclassifier.lua"
 require('Replicatedynamic.lua')
 
---Setting up the zoomout feature extractor
+--Paths to models and normalization tensors
 model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet/VGG_ILSVRC_16_layers_fullconv.caffemodel';
 config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
+train_file = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
+classifier_path = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
+normalize_path = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
+image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
+--Setting up zoomout feature extractor
 net = loadcaffe.load(config_file, model_file)
-
-filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
-train_data, train_gt = load_data(filePath)
+train_data, train_gt = load_data(train_file)
 mean_pix = {103.939, 116.779, 123.68};
 fixedimh = 256
 fixedwid = 336
@@ -38,9 +41,8 @@ inputsize = 8320
 val = 0
 
 --Set up the Classifier network
-classifier = torch.load('/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7')
-filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
-loadedmeanstd = torch.load(filepath)
+classifier = torch.load(classifier_path)
+loadedmeanstd = torch.load(normalize_path)
 
 meanx = loadedmeanstd[1]
 stdx = loadedmeanstd[2]
@@ -58,8 +60,7 @@ zoomout_model = zoomout_model:cuda()
 model = zoomout_model
 
 --Validation
-
-if val then
+if val==1 then
 batch_norm = nn.SpatialBatchNormalization(inputsize)
 classifier:insert(batch_norm,1)
 classifier:get(1).weight = classifier:get(1).weight:fill(1)
@@ -68,8 +69,7 @@ for tt=1,inputsize do
 classifier:get(1).weight[tt] = classifier:get(1).weight[tt]/stdx[tt]
 classifier:get(1).bias[tt] = -meanx[tt]
 end
-filePath = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
-s,sgt = load_data(filePath)
+s,sgt = load_data(image_path)
 validate(model:cuda())
 end
 
@@ -99,26 +99,24 @@ optimMethod = optim.sgd
 --Sampling Model--
 ------------------
 --[[
-dofile "temp_zoomout.lua"
 pixels = 100
 train_data,train_gt = load_data(filePath)
 samp = sparse_zoomout_features(zoomout_model,train_data,train_gt,pixels,meanx,stdx)
 torch.save("sampling/sampfeats.t7",samp)
 --]]
-
 --------------------
 --Zoomout Training--
 --------------------
+
 batchsize = 1 
 datasetlabels = torch.Tensor(batchsize,fixedimh,fixedwid)
 im_proc = torch.Tensor(batchsize,3,fixedimh,fixedwid)
 rand = torch.randperm(numimages)
 
-
 for jj=1, numimages do
     collectgarbage()
     for i=1,batchsize do
-    index = 1--rand[jj]
+    index = rand[jj]
     local im = image.load(train_data[index])
     local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
 
