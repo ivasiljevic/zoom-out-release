@@ -12,14 +12,14 @@ require 'optim'
 dofile "dataset.lua"
 dofile "preprocess.lua"
 dofile "train.lua"
+dofile "val.lua"
 dofile "zoomoutconstruct.lua"
 dofile "zoomoutclassifier.lua"
 require('Replicatedynamic.lua')
 
---Setting up the zoomout mode
+--Setting up the zoomout feature extractor
 model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet/VGG_ILSVRC_16_layers_fullconv.caffemodel';
 config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
-
 net = loadcaffe.load(config_file, model_file)
 
 filePath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
@@ -30,33 +30,15 @@ fixedwid = 336
 fixedimsize = 256
 downsample = 4
 zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36}
---zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30}
 global = 1
 origstride =4
 nlabels = 21  
 nhiddenunits = 1000
 inputsize = 8320
+val = 0
 
---Set up the zoomout network
---]classifier = zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
---classifier = torch.load("results/model.net")
---The issue:
+--Set up the Classifier network
 classifier = torch.load('/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7')
-batch_norm = nn.BatchNormalization(inputsize)
-l1 = nn.View(inputsize,64*84)
-l2 = nn.Transpose({1,2})
-l3 = nn.Transpose({1,2})
-l4 = nn.View(inputsize,64,84)
-l5 = nn.View(1,inputsize,64,84)
-
-classifier:insert(l1,1)
-classifier:insert(l2,2)
-classifier:insert(batch_norm,3)
-classifier:insert(l3,4)
-classifier:insert(l4,5)
-classifier:insert(l5,6)
-
-
 filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 loadedmeanstd = torch.load(filepath)
 
@@ -69,46 +51,39 @@ for i=1, stdx:size()[1] do
     end
 end
 
-classifier:get(3).weight = classifier:get(3).weight:fill(1)
-
-for tt=1,inputsize do
-classifier:get(3).weight[tt] = classifier:get(3).weight[tt]/stdx[tt]
-classifier:get(3).bias[tt] = -meanx[tt]
-end
-
 zoomout_model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
 criterion = cudnn.SpatialCrossEntropyCriterion()
 criterion:cuda()
-
---[[
-W = Bilinearkernel(origstride*2,nlabels,nlabels)  -- initailization to bilinear upsampling
-zoomout_model.modules[76]:get(8).weight= W
-zoomout_model.modules[76]:get(8).bias:fill(0);
---]]
 zoomout_model = zoomout_model:cuda()
 model = zoomout_model
---dofile "val.lua"
---validate(model)
 
+--Validation
 
+if val then
+batch_norm = nn.SpatialBatchNormalization(inputsize)
+classifier:insert(batch_norm,1)
+classifier:get(1).weight = classifier:get(1).weight:fill(1)
 
---]]
+for tt=1,inputsize do
+classifier:get(1).weight[tt] = classifier:get(1).weight[tt]/stdx[tt]
+classifier:get(1).bias[tt] = -meanx[tt]
+end
+filePath = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
+s,sgt = load_data(filePath)
+validate(model:cuda())
+end
+
 classifier = nil
 net = nil
 
 
--- classes
+--Training setup.
 classes = {'1','2','3','4','5','6','7','8','9','10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'}
-
--- This matrix records the current confusion across classes
 confusion = optim.ConfusionMatrix(classes)
 
--- this extracts and flattens all the trainable parameters of the mode
--- into a 1-dim vector
 if zoomout_model then
    parameters,gradParameters = zoomout_model:getParameters()
 end
-
 
 optimState = nil
 optimState = {
@@ -120,23 +95,6 @@ optimState = {
 }
 optimMethod = optim.sgd
 
-filepath = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
-
-fixedimsize = 256
-fixedwid = 336
-fixedimh = 256
-
-loadedmeanstd = torch.load(filepath)
-
-meanx = loadedmeanstd[1]
-stdx = loadedmeanstd[2]
-
-for i=1, stdx:size()[1] do
-    if stdx[i]==0 then
-    stdx[i]=1;
-    end
-end 
-
 ------------------
 --Sampling Model--
 ------------------
@@ -147,10 +105,10 @@ train_data,train_gt = load_data(filePath)
 samp = sparse_zoomout_features(zoomout_model,train_data,train_gt,pixels,meanx,stdx)
 torch.save("sampling/sampfeats.t7",samp)
 --]]
+
 --------------------
 --Zoomout Training--
 --------------------
-
 batchsize = 1 
 datasetlabels = torch.Tensor(batchsize,fixedimh,fixedwid)
 im_proc = torch.Tensor(batchsize,3,fixedimh,fixedwid)
