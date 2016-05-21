@@ -10,13 +10,8 @@ function zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
     model:add(nn.Dropout(0.5))
     model:add(nn.SpatialConvolutionMM(nhiddenunits, nlabels, 1, 1))
     model:add(nn.SpatialFullConvolution(nlabels,nlabels,origstride*2,origstride*2,origstride,origstride,origstride/2,origstride/2))
-    --W = Bilinearkernel(origstride*2,nlabels,nlabels)  -- initailization to bilinear upsampling
-    --model.modules[76]:get(8).weight= W
-    --model.modules[76]:get(8).bias:fill(0);
-
-    criterion = cudnn.SpatialCrossEntropyCriterion()
-    model:cuda()
-    criterion:cuda()
-
+    local W = Bilinearkernel(origstride*2,nlabels,nlabels)  -- initailization to bilinear upsampling
+    model.modules[8]:get(8).weight= W
+    model.modules[8]:get(8).bias:fill(0);
     return model
 end

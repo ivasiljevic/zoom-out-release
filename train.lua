@@ -2,10 +2,7 @@
 
 function train(model,inputs, targets)
     epoch = epoch or 1
-    local time = sys.clock()
-    model:training()
 -- do one epoch
-    print('==> doing epoch on training data:')
     print("==> online epoch # " .. epoch ..']')
 -- create closure to evaluate f(X) and df/dX
         local feval = function(x)
@@ -31,8 +28,7 @@ end
     local filename = paths.concat('results', 'model.net')
     os.execute('mkdir -p ' .. sys.dirname(filename))
     if epoch% 1000 == 0 then 
-        torch.save(filename, model) 
-    model:cuda() 
+    torch.save(filename, model) 
     end
     epoch = epoch + 1
 end
