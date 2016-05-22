@@ -41,6 +41,7 @@ fixedwid = 336
 fixedimsize = 256
 downsample = 4
 zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36}
+--zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30} --don't train classifier
 global = 1
 origstride =4
 nlabels = 21  
@@ -111,11 +112,11 @@ if model then
 end
 
 optimState = {
-  learningRate = 1e-4,
+  learningRate = 1e-5,
   weightDecay = 0.0,
   momentum = 0.9,
   dampening = 0.0,
-  learningRateDecay = 1e-4
+  learningRateDecay = 0
 }
 optimMethod = optim.sgd
 --------------------
@@ -129,27 +130,26 @@ rand = torch.randperm(numimages)
 for jj=1, numimages do
     collectgarbage() 
     for i=1,batchsize do
-    local index = rand[jj]
-    local im = image.load(train_data[index])
-    local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
+        local index = rand[jj]
+        local im = image.load(train_data[index])
+        local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
 
-    torch.randperm(2)[2] = 1
-    if torch.randperm(2)[2]==2 then
-    im_proc_temp = preprocess(image.hflip(im:clone()),mean_pix)
-    im_proc = torch.Tensor(batchsize,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
-    im_proc[{{i},{},{},{}}] = im_proc_temp
-    gt_temp = preprocess_gt_deconv(image.hflip(loaded.GT:clone()))
-    gt_proc = torch.Tensor(batchsize,gt_temp:size()[1],gt_temp:size()[2])
-    gt_proc[{{i},{},{}}] =  gt_temp
-    else
-    im_proc_temp = preprocess(im,mean_pix)
-    im_proc = torch.Tensor(batchsize,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
-    im_proc[{{i},{},{},{}}] = im_proc_temp
-
-    gt_temp = preprocess_gt_deconv(loaded.GT)
-    gt_proc = torch.Tensor(batchsize,gt_temp:size()[1],gt_temp:size()[2])
-    gt_proc[{{i},{},{}}] =  gt_temp
-    end
+--        torch.randperm(2)[2] = 1
+        if torch.randperm(2)[2]==2 then
+            im_proc_temp = preprocess(image.hflip(im:clone()),mean_pix)
+            im_proc = torch.Tensor(batchsize,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
+            im_proc[{{i},{},{},{}}] = im_proc_temp
+            gt_temp = preprocess_gt_deconv(image.hflip(loaded.GT:clone()))
+            gt_proc = torch.Tensor(batchsize,gt_temp:size()[1],gt_temp:size()[2])
+            gt_proc[{{i},{},{}}] =  gt_temp
+        else
+            im_proc_temp = preprocess(im,mean_pix)
+            im_proc = torch.Tensor(batchsize,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
+            im_proc[{{i},{},{},{}}] = im_proc_temp
+            gt_temp = preprocess_gt_deconv(loaded.GT)
+            gt_proc = torch.Tensor(batchsize,gt_temp:size()[1],gt_temp:size()[2])
+            gt_proc[{{i},{},{}}] =  gt_temp
+        end
     end 
 
     im = nil

@@ -2,25 +2,25 @@
 
 function preprocess(im, mean_pix)
   -- rescale the image
-  if im:size()[2] < im:size()[3] then
-    ratio = fixedimsize/im:size()[2]
-    imheight = fixedimsize
-    imwidth = ratio*im:size()[3] 
-    imwidth = imwidth - (imwidth%16) -- make sure that imwidth is consistent during resizing
-  else
-    ratio = fixedimsize/im:size()[3]
-    imwidth = fixedimsize
-    imheight = ratio*im:size()[2]
-    imheight = imheight - (imheight%16)
-  end
-  local im3 = image.scale(im:float(),imwidth,imheight,'bilinear')*255
-  -- RGB2BGR
-  local im4 = im3:clone()
-  im4[{1,{},{}}] = im3[{3,{},{}}]
-  im4[{3,{},{}}] = im3[{1,{},{}}]
+    if im:size()[2] < im:size()[3] then
+        ratio = fixedimsize/im:size()[2]
+        imheight = fixedimsize
+        imwidth = ratio*im:size()[3] 
+        imwidth = imwidth - (imwidth%16) -- make sure that imwidth is consistent during resizing
+    else
+        ratio = fixedimsize/im:size()[3]
+        imwidth = fixedimsize
+        imheight = ratio*im:size()[2]
+        imheight = imheight - (imheight%16)
+    end
+    local im3 = image.scale(im:float(),imwidth,imheight,'bilinear')*255
+     -- RGB2BGR
+    local im4 = im3:clone()
+    im4[{1,{},{}}] = im3[{3,{},{}}]
+    im4[{3,{},{}}] = im3[{1,{},{}}]
   -- subtract  mean
   for c = 1, 3 do
-    im4[c] = im4[c]:sub(1,imheight,1,imwidth) - mean_pix[c]
+      im4[c] = im4[c]:sub(1,imheight,1,imwidth) - mean_pix[c]
   end
   return im4
   end
