@@ -11,11 +11,12 @@ function train(model,inputs, targets)
         end
         gradParameters:zero()
         local f = 0
-        local output = model:forward(inputs);
+        local output = model:forward(inputs:cuda());
+        collectgarbage()
         f = criterion:forward(output, targets)
         local df_do = criterion:backward(output, targets);
         model:backward(inputs, df_do);
-
+        --inputs = nil
     return f,gradParameters
 end
 -- optimize on current mini-batch

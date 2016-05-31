@@ -16,7 +16,7 @@ dofile "val.lua"
 dofile "zoomoutconstruct.lua"
 dofile "zoomoutclassifier.lua"
 require('Replicatedynamic.lua')
-
+require("initSBatchNormalization.lua")
 ---------------------------------------------
 --Paths to models and normalization tensors--
 ---------------------------------------------
@@ -25,15 +25,14 @@ model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet
 config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
 train_file = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 classifier_path = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
---classifier_path = "results/model.net"
+model_path = "results/model.net"
 normalize_path = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 
 --------------------------------------------
 --Setting up zoomout feature extractor------
 --------------------------------------------
-
-net = loadcaffe.load(config_file, model_file)
+new_model = 0
 train_data, train_gt = load_data(train_file)
 mean_pix = {103.939, 116.779, 123.68};
 fixedimh = 256
@@ -48,9 +47,10 @@ nlabels = 21
 nhiddenunits = 1000
 inputsize = 8320
 --train or val?
-val = 0
-training = 1
-
+val = 1 
+training = 0
+if new_model then
+net = loadcaffe.load(config_file, model_file)
 --------------------------------------------
 -----Set up the Classifier network---------
 --------------------------------------------
@@ -62,6 +62,7 @@ meanx = loadedmeanstd[1]
 stdx = loadedmeanstd[2]
 
 for i=1, stdx:size()[1] do
+stdx[i]=stdx[i]^2
     if stdx[i]==0 then
     stdx[i]=1;
     end
@@ -71,16 +72,31 @@ end
 --Batch Norm for Mean/Var Subtraction
 --------------------------------------
 
-batch_norm = nn.SpatialBatchNormalization(inputsize)
-classifier:insert(batch_norm,1)
-classifier:get(1).weight = classifier:get(1).weight:fill(1)
-batch_norm = nil
-for tt=1,inputsize do
-    classifier:get(1).weight[tt] = stdx[tt]
-    classifier:get(1).bias[tt] = -meanx[tt]
-end
+batch_norm = nn.initSBatchNormalization(inputsize)
+batch_norm.running_mean=meanx
+batch_norm.affine=false
+batch_norm.running_var=stdx
+batch_norm.save_mean = meanx
+batch_norm.save_var = stdx
+batch_norm:parameters()[1]:fill(1)
+batch_norm:parameters()[2]:fill(0)
 
+classifier:insert(batch_norm,1)
+--[[
+classifier:get(1).weight:fill(1)
+--classifier:get(1).bias:fill(0)
+batch_norm = nil
+for tt=1,inputsize do 
+   -- classifier:get(1).weight[tt]=stdx[tt]
+    classifier:get(1).bias[tt] = -meanx[tt]
+    classifier:get(1).weight[tt] = 1/stdx[tt]
+ --   classifier:get(1).bias[tt] = -meanx[tt]
+end
+--]]
 model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
+end
+if new_model == 0 then model = torch.load(model_path) end
+
 criterion = cudnn.SpatialCrossEntropyCriterion()
 criterion:cuda()
 model:cuda()
@@ -90,8 +106,9 @@ model:cuda()
 --------------------------------------------
 
 if val==1 then
+    model:evaluate()
     s,sgt = load_data(image_path)
-    validate(model:cuda())
+    validate(model)
 end
 
 classifier = nil
@@ -104,7 +121,7 @@ batch_norm = nil
 --Training setup
 --------------------------------------------
 
-classes = {'1','2','3','4','5','6','7','8','9','10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'}
+--classes = {'1','2','3','4','5','6','7','8','9','10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'}
 --confusion = optim.ConfusionMatrix(classes)
 
 if model then
@@ -113,10 +130,10 @@ end
 
 optimState = {
   learningRate = 1e-5,
-  weightDecay = 0.0,
+  weightDecay = 1e-4,
   momentum = 0.9,
   dampening = 0.0,
-  learningRateDecay = 0
+  learningRateDecay = 1e-4
 }
 optimMethod = optim.sgd
 --------------------
@@ -134,7 +151,7 @@ for jj=1, numimages do
         local im = image.load(train_data[index])
         local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
 
---        torch.randperm(2)[2] = 1
+        torch.randperm(2)[2] = 1
         if torch.randperm(2)[2]==2 then
             im_proc_temp = preprocess(image.hflip(im:clone()),mean_pix)
             im_proc = torch.Tensor(batchsize,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
@@ -150,14 +167,14 @@ for jj=1, numimages do
             gt_proc = torch.Tensor(batchsize,gt_temp:size()[1],gt_temp:size()[2])
             gt_proc[{{i},{},{}}] =  gt_temp
         end
+    im:float()
+    im =nil 
+    im_proc_temp:float(); im_proc_temp = nil
     end 
 
-    im = nil
-    gt_temp = nil
-    im_proc_temp = nil
-    
-    train(model, im_proc:cuda(), gt_proc:cuda())
-
+    train(model, im_proc, gt_proc:cuda())
+    im_proc:float()
+    gt_proc:float()
     im_proc = nil
     gt_proc = nil
     collectgarbage()
