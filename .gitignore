@@ -1,2 +1,4 @@
 *.swp
 *.t7
+/results
+/prediction

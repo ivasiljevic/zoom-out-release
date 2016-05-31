@@ -2,9 +2,9 @@
 
 function load_data(filePath)
 
-    loaded = matio.load(filePath)
-    imlist = loaded.Imlist
-    imlistgt = loaded.Imlistgt
+    local loaded = matio.load(filePath)
+    local imlist = loaded.Imlist
+    local imlistgt = loaded.Imlistgt
     t = {}
     s = {}
     i = 0

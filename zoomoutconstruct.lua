@@ -1,5 +1,4 @@
 
-
 function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 
 clsmodel:cuda()
@@ -80,6 +79,8 @@ end
 --output = Join
 output = clsmodel(Join)
 zoomout_model = nn.gModule({iminput}, {output})
-
+output = nil
+clsmodel = nil
+net = nil
 return zoomout_model
 end
