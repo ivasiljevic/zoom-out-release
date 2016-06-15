@@ -11,7 +11,7 @@ require 'optim'
 require 'matpay.lua'
 torch.setdefaulttensortype('torch.FloatTensor')
 
-
+	
 require('initSBatchNormalization.lua')
 
 

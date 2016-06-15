@@ -48,7 +48,7 @@ function BN:__init(nOutput, eps, momentum, affine)
       self.affine = true
    end
    self.eps = eps or 1e-5
-   self.train = true
+   self.train = false
    self.momentum = momentum or 0.1
    self.running_mean = torch.zeros(nOutput)
    self.running_var = torch.ones(nOutput)
@@ -147,7 +147,7 @@ local function backward(self, input, gradOutput, scale, gradInput, gradWeight, g
       self.running_var:cdata(),
       self.save_mean:cdata(),
       self.save_std:cdata(),
-      self.train,
+      0,
       scale,
       self.eps)
 
