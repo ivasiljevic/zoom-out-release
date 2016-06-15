@@ -1,12 +1,11 @@
 
 function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 
-clsmodel:cuda()
-net:cuda() 
+--clsmodel:cuda()
+--net:cuda() 
 net:evaluate();	
 
-
-stride = torch.Tensor(zlayers[#zlayers])
+local stride = torch.Tensor(zlayers[#zlayers])
 stride[1] = 1
 lastdW = 1
 for i =2, zlayers[#zlayers] do
@@ -20,8 +19,8 @@ end
 
 
 
-kersize = torch.Tensor(zlayers[#zlayers]):fill(1) -- let's fix the ker size for all layers. 
-padsize = torch.Tensor(zlayers[#zlayers]):fill(0)
+local kersize = torch.Tensor(zlayers[#zlayers]):fill(1) -- let's fix the ker size for all layers. 
+local padsize = torch.Tensor(zlayers[#zlayers]):fill(0)
 stridesize = torch.Tensor(zlayers[#zlayers])
 
 for i =1, zlayers[#zlayers] do
@@ -30,10 +29,10 @@ end
 
 
 scale = 0 
-C = {}
-S = {}
-iminput = nn.Identity()()
-downsamplefact = nn.Identity()()
+local C = {}
+local S = {}
+local iminput = nn.Identity()()
+local downsamplefact = nn.Identity()()
 C[1] = net:get(1)(iminput)
 counter = 1
 if global == 1 then

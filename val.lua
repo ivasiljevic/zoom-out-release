@@ -3,7 +3,7 @@
 function validate(model)
     for k=1,#imlist do
         collectgarbage()
-
+        model:evaluate()
         local im = image.load(s[k])
         local im_proc_temp = preprocess(im,mean_pix)
         local im_proc = torch.Tensor(1,3,im_proc_temp:size()[2],im_proc_temp:size()[3])

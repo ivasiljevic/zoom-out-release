@@ -3,7 +3,7 @@
 function load_data(filePath)
 
     local loaded = matio.load(filePath)
-    local imlist = loaded.Imlist
+    imlist = loaded.Imlist
     local imlistgt = loaded.Imlistgt
     t = {}
     s = {}
