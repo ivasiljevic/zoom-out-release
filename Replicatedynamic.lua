@@ -42,7 +42,7 @@ function Replicatedynamic:updateOutput(input)
 end
 
 function Replicatedynamic:updateGradInput(input, gradOutput)
-   input1 = input[1];
+   local input1 = input[1];
    if torch.type(self.gradInput)=='table' then
 		self.gradInput=self.gradInput[1]
 	end

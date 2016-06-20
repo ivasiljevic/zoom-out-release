@@ -1,23 +1,36 @@
 --Defines the preprocessing functions needed for zoomout model.
 
-function preprocess(im, mean_pix)
-  -- rescale the image
+function preprocess(im, mean_pix,fixedimsize)
+ -- rescale the image
+--  fixedim = fixedimsize
+  --  if im:size()[2]*1.7 < fixedim then 
+  --  fixedim = fixedim/2 
+  --  end
+  --[[
     if im:size()[2] < im:size()[3] then
-        ratio = fixedimsize/im:size()[2]
-        imheight = fixedimsize
+        ratio = fixedim/im:size()[2]
+        imheight = fixedim
         imwidth = ratio*im:size()[3] 
         imwidth = imwidth - (imwidth%16) -- make sure that imwidth is consistent during resizing
     else
-        ratio = fixedimsize/im:size()[3]
-        imwidth = fixedimsize
+        ratio = fixedim/im:size()[3]
+        imwidth = fixedim
         imheight = ratio*im:size()[2]
         imheight = imheight - (imheight%16)
+    end
+ --]]
+   imheight = fixedimh
+   imwidth = fixedwid
+    if im:size()[2] > im:size()[3] then
+    imwidth = fixedimh
+    imheight = fixedwid
     end
     local im3 = image.scale(im:float(),imwidth,imheight,'bilinear')*255
      -- RGB2BGR
     local im4 = im3:clone()
     im4[{1,{},{}}] = im3[{3,{},{}}]
     im4[{3,{},{}}] = im3[{1,{},{}}]
+    im3 = nil
   -- subtract  mean
   for c = 1, 3 do
       im4[c] = im4[c]:sub(1,imheight,1,imwidth) - mean_pix[c]
@@ -41,20 +54,37 @@ local im4 = im3:clone()
         return im4
         end
 
-function preprocess_gt(im)
-        -- rescale the image
+function preprocess_gt_deconv(im,fixedimsize)
+    -- rescale the image
+--     fixedim = fixedimsize
+       -- if im:size()[1]*1.7 < fixedim then
+       --fixedim = fixedim/2 end
+--[[
         if im:size()[1] < im:size()[2] then
-        ratio = fixedimsize/im:size()[1]
-        imheight = fixedimsize
+        ratio = fixedim/im:size()[1]
+        imheight = fixedim
         imwidth = ratio*im:size()[2] 
         imwidth = imwidth - (imwidth%16) -- make sure that imwidth is consistent during resizing
         else
-        ratio = fixedimsize/im:size()[2]
-        imwidth = fixedimsize
+        ratio = fixedim/im:size()[2]
+        imwidth = fixedim
         imheight = ratio*im:size()[1]
 imheight = imheight - (imheight%16)
         end
-        local im3 = image.scale(im:float(),imwidth/4,imheight/4,'simple')
+--        wid =imwidth/2
+--        hit = imheight/2
+  
+--        wid = imwidth/4
+--        hit = imheight/4
+  --]]
+   imheight = fixedimh
+   imwidth = fixedwid
+    if im:size()[1] > im:size()[2] then
+    imwidth = fixedimh
+    imheight = fixedwid
+    end
+       local im3 = image.scale(im:float(),imwidth,imheight,'simple')
+--        local im3 = image.scale(im:float(),im:size()[1]/4,im:size()[2]/4,'simple')
         return im3
         end
 
@@ -89,7 +119,7 @@ function Bilinearkernel(filtersize, noutchannels,ninchannels)
         end
         return output
         end
-
+--[[
 function preprocess_gt_deconv(im)
         -- rescale the image
         if im:size()[1] < im:size()[2] then
@@ -106,3 +136,4 @@ function preprocess_gt_deconv(im)
   local im3 = image.scale(im:float(),imwidth,imheight,'simple')
   return im3
 end
+--]]

@@ -1,4 +1,7 @@
+slurm*
 *.swp
 *.t7
 /results
 /prediction
+*.sh
+*.net

@@ -47,8 +47,8 @@ nlabels = 21
 nhiddenunits = 1000
 inputsize = 8320
 --train or val?
-val = 1 
-training = 0
+val = 0 
+training = 1
 if new_model then
 net = loadcaffe.load(config_file, model_file)
 --------------------------------------------
@@ -129,11 +129,11 @@ if model then
 end
 
 optimState = {
-  learningRate = 1e-5,
-  weightDecay = 1e-4,
+  learningRate = 1e-4,
+  weightDecay = 1e-4,--1e-5,
   momentum = 0.9,
   dampening = 0.0,
-  learningRateDecay = 1e-4
+  learningRateDecay = 1e-4--1e-4
 }
 optimMethod = optim.sgd
 --------------------
@@ -141,42 +141,42 @@ optimMethod = optim.sgd
 --------------------
 if training == 1 then
 model:training()
+
+for k=1,4 do
 batchsize = 1 
 rand = torch.randperm(numimages)
-
 for jj=1, numimages do
     collectgarbage() 
-    for i=1,batchsize do
+--    for i=1,batchsize do
         local index = rand[jj]
         local im = image.load(train_data[index])
         local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
-
-        torch.randperm(2)[2] = 1
-        if torch.randperm(2)[2]==2 then
-            im_proc_temp = preprocess(image.hflip(im:clone()),mean_pix)
-            im_proc = torch.Tensor(batchsize,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
-            im_proc[{{i},{},{},{}}] = im_proc_temp
-            gt_temp = preprocess_gt_deconv(image.hflip(loaded.GT:clone()))
-            gt_proc = torch.Tensor(batchsize,gt_temp:size()[1],gt_temp:size()[2])
-            gt_proc[{{i},{},{}}] =  gt_temp
-        else
-            im_proc_temp = preprocess(im,mean_pix)
-            im_proc = torch.Tensor(batchsize,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
-            im_proc[{{i},{},{},{}}] = im_proc_temp
-            gt_temp = preprocess_gt_deconv(loaded.GT)
-            gt_proc = torch.Tensor(batchsize,gt_temp:size()[1],gt_temp:size()[2])
-            gt_proc[{{i},{},{}}] =  gt_temp
-        end
-    im:float()
+    
+--freeMemory, totalMemory = cutorch.getMemoryUsage(1)
+--        old_mem = freeMemory
+        
+   -- print(freeMemory, im:size())
+    im_proc = preprocess(im,mean_pix,fixedimsize)
+    im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
+    gt_proc = preprocess_gt_deconv(loaded.GT,fixedimsize)
+    gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
     im =nil 
-    im_proc_temp:float(); im_proc_temp = nil
-    end 
-
-    train(model, im_proc, gt_proc:cuda())
-    im_proc:float()
-    gt_proc:float()
+ --   print(im_proc:size())
+    train(model, im_proc:cuda(), gt_proc:cuda())
     im_proc = nil
     gt_proc = nil
+    loaded = nil
     collectgarbage()
+
+--freeMemory, totalMemory = cutorch.getMemoryUsage(1)
+--print(freeMemory)
+--if jj > 10 and freeMemory < old_mem*0.5 then break 
+--end
 end
 end
+end
+model:evaluate()
+s,sgt = load_data(image_path)
+validate(model)
+
+--torch.save("model.net",model)

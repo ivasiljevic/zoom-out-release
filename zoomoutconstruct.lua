@@ -60,26 +60,34 @@ end
 
 Join = S[1]
 for i = 2, numzoomlayers do
-	Join = nn.JoinTable(2):cuda()({Join,S[i]})
+	Join = nn.JoinTable(2)({Join,S[i]})
 end
 
 
 if global == 1 then
 	C[numlayers+1] = net:get(numlayers+1)(C[numlayers])
-	globalfeats = nn.Max(4):cuda()(C[numlayers+1])
-	globalfeats = nn.Max(3):cuda()(globalfeats)
-	repl = nn.Replicatedynamic(1,4):cuda()({globalfeats,iminput})
-	imtranspose = nn.Transpose({3, 4}):cuda()(iminput)
-	repl = nn.Replicatedynamic(2,4):cuda()({repl,imtranspose})
-	output = nn.Transpose({3, 1},{2,4}):cuda()(repl)
-	Join = nn.JoinTable(2):cuda()({Join,output})
+	globalfeats = nn.Max(4)(C[numlayers+1])
+	globalfeats = nn.Max(3)(globalfeats)
+--trouble here ->
+	repl = nn.Replicatedynamic(1,4)({globalfeats,iminput})
+	imtranspose = nn.Transpose({3, 4})(iminput)
+	repl = nn.Replicatedynamic(2,4)({repl,imtranspose})
+	output = nn.Transpose({3, 1},{2,4})(repl)
+	Join = nn.JoinTable(2)({Join,output})
 end
 
 --output = Join
 output = clsmodel(Join)
 zoomout_model = nn.gModule({iminput}, {output})
 output = nil
+globalfeats = nil
+repl = nil
+intranspose = nil
+Join = nil
 clsmodel = nil
 net = nil
+C = nil
+S = nil
+collectgarbage()
 return zoomout_model
 end

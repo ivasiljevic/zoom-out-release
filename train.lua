@@ -11,7 +11,7 @@ function train(model,inputs, targets)
         end
         gradParameters:zero()
         local f = 0
-        local output = model:forward(inputs:cuda());
+        local output = model:forward(inputs);
         collectgarbage()
         f = criterion:forward(output, targets)
         local df_do = criterion:backward(output, targets);
@@ -26,11 +26,11 @@ end
         optimMethod(feval, parameters, optimState)
     end
    
-    local filename = paths.concat('results', 'model.net')
-    os.execute('mkdir -p ' .. sys.dirname(filename))
-    if epoch% 1000 == 0 then 
-    torch.save(filename, model) 
-    end
+--    local filename = paths.concat('results', 'model.net')
+--    os.execute('mkdir -p ' .. sys.dirname(filename))
+--    if epoch% 1000 == 0 then 
+--    torch.save(filename, model) 
+--    end
     epoch = epoch + 1
 end
 
