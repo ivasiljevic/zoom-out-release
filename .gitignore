@@ -5,3 +5,4 @@ slurm*
 /prediction
 *.sh
 *.net
+*.out

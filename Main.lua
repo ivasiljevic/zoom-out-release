@@ -25,22 +25,29 @@ model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet
 config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
 train_file = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 classifier_path = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
-model_path = "results/model.net"
+model_path = "model.net"
 normalize_path = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 
 --------------------------------------------
 --Setting up zoomout feature extractor------
 --------------------------------------------
-new_model = 0
+cmd = torch.CmdLine()
+cmd:text()
+cmd:text('Options')
+cmd:option('-new_model',0,"Create new model or load pre-trained")
+cmd:text()
+opt = cmd:parse(arg)
+
+new_model = opt.new_model
 train_data, train_gt = load_data(train_file)
 mean_pix = {103.939, 116.779, 123.68};
 fixedimh = 256
 fixedwid = 336
 fixedimsize = 256
 downsample = 4
-zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36}
---zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30} --don't train classifier
+--zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36}
+zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36} --don't train classifier
 global = 1
 origstride =4
 nlabels = 21  
@@ -49,6 +56,7 @@ inputsize = 8320
 --train or val?
 val = 0 
 training = 1
+freeze_zoomout = 1
 if new_model then
 net = loadcaffe.load(config_file, model_file)
 --------------------------------------------
@@ -130,10 +138,10 @@ end
 
 optimState = {
   learningRate = 1e-4,
-  weightDecay = 1e-4,--1e-5,
+  weightDecay =1e-4,--1e-5,
   momentum = 0.9,
   dampening = 0.0,
-  learningRateDecay = 1e-4--1e-4
+  learningRateDecay =1e-4 
 }
 optimMethod = optim.sgd
 --------------------
@@ -142,38 +150,46 @@ optimMethod = optim.sgd
 if training == 1 then
 model:training()
 
-for k=1,4 do
+if freeze_zoomout then
+for i, m in ipairs(model.modules) do
+   if torch.type(m):find('Convolution') then
+      m.accGradParameters = function() end
+      m.updateParameters = function() end
+end
+end
+end
+
+for k=1,3 do
 batchsize = 1 
 rand = torch.randperm(numimages)
 for jj=1, numimages do
     collectgarbage() 
---    for i=1,batchsize do
-        local index = rand[jj]
-        local im = image.load(train_data[index])
-        local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
+    local index = rand[jj]
+    local im = image.load(train_data[index])
+    local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
     
---freeMemory, totalMemory = cutorch.getMemoryUsage(1)
---        old_mem = freeMemory
-        
-   -- print(freeMemory, im:size())
+    if torch.randperm(2)[2]==2 then
+    im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimsize)
+    im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
+    gt_proc = preprocess_gt_deconv(image.hflip(loaded.GT:clone()),fixedimsize)
+    gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
+    else      
     im_proc = preprocess(im,mean_pix,fixedimsize)
     im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
     gt_proc = preprocess_gt_deconv(loaded.GT,fixedimsize)
     gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
-    im =nil 
- --   print(im_proc:size())
+    end
+    im = nil
+
     train(model, im_proc:cuda(), gt_proc:cuda())
     im_proc = nil
     gt_proc = nil
     loaded = nil
     collectgarbage()
 
---freeMemory, totalMemory = cutorch.getMemoryUsage(1)
---print(freeMemory)
---if jj > 10 and freeMemory < old_mem*0.5 then break 
---end
 end
 end
+--torch.save("model.net",model)
 end
 model:evaluate()
 s,sgt = load_data(image_path)
