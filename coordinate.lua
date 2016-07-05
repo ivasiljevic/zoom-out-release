@@ -1,7 +1,7 @@
 --Create the two coordinate tensors.
 
 function isint(n)
-  return n==math.floor(n)
+    return n==math.floor(n)
 end
 
 function coordinate_x(x,y)
@@ -17,21 +17,21 @@ function coordinate_x(x,y)
     coord[{dim_x,1}] = -1
 
     function edge_line(lin)
-    div = dim_x - center
-    div = math.ceil(div)
+        div = dim_x - center
+        div = math.ceil(div)
 
-    for i=2,dim_x-1 do
-        prev = coord[{i-1,lin}]
+        for i=2,dim_x-1 do
+            prev = coord[{i-1,lin}]
 
-        if i<center then 
-        coord[{i,lin}] = prev - coord[{1,lin}]/(div)
-    end
+            if i<center then 
+                coord[{i,lin}] = prev - coord[{1,lin}]/(div)
+            end
 
-    if i>center then 
-    if math.ceil(center) == i then prev = 0 end 
-    coord[{i,lin}] = prev + coord[{1,lin}]/(div) 
-    end
-    end
+            if i>center then 
+                if math.ceil(center) == i then prev = 0 end 
+                coord[{i,lin}] = prev + coord[{1,lin}]/(div) 
+            end
+        end
     end 
 
     edge_line(1)
@@ -46,6 +46,7 @@ function coordinate_x(x,y)
 
     return coord
 end
+
 --Y COORDINATE TENSOR
 
 function coordinate_y(x,y)
@@ -61,33 +62,32 @@ function coordinate_y(x,y)
     coord[{dim_x,1}] = -1
 
     function edge_line(lin)
-    div = dim_y - center
-    div = math.ceil(div)
+        div = dim_y - center
+        div = math.ceil(div)
 
-    for i=2,dim_y-1 do
-        prev = coord[{lin,i-1}]
+        for i=2,dim_y-1 do
+            prev = coord[{lin,i-1}]
 
-    if i<center then 
-    coord[{lin,i}] = prev - coord[{lin,1}]/(div)
-    end
+        if i<center then 
+            coord[{lin,i}] = prev - coord[{lin,1}]/(div)
+        end
 
-    if i>center then 
-    if math.ceil(center) == i then prev = 0 end 
-    coord[{lin,i}] = prev + coord[{lin,1}]/(div) 
-    end
-    end
+        if i>center then 
+            if math.ceil(center) == i then prev = 0 end 
+                coord[{lin,i}] = prev + coord[{lin,1}]/(div) 
+            end
+        end
     end 
 
     edge_line(1)
     edge_line(dim_x)
 
     for j = 1, dim_y do 
-    for i = 2, dim_x-1 do
-    diff = coord[{dim_x,j}] - coord[{1,j}]
-    coord[{i,j}] = diff/(dim_x-1) + coord[{i-1,j}]
-    end
+        for i = 2, dim_x-1 do
+            diff = coord[{dim_x,j}] - coord[{1,j}]
+            coord[{i,j}] = diff/(dim_x-1) + coord[{i-1,j}]
+        end
     end
 
     return coord
 end
-

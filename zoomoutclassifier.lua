@@ -1,17 +1,17 @@
 --Constructs classifier model.
 
 function zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
-    local model = nn.Sequential() 
-    model:add(nn.SpatialConvolutionMM(inputsize, nhiddenunits, 1, 1))
-    model:add(nn.ReLU(true))
-    model:add(nn.Dropout(0.5))
-    model:add(nn.SpatialConvolutionMM(nhiddenunits, nhiddenunits, 1, 1))
-    model:add(nn.ReLU(true))
-    model:add(nn.Dropout(0.5))
-    model:add(nn.SpatialConvolutionMM(nhiddenunits, nlabels, 1, 1))
-    model:add(nn.SpatialFullConvolution(nlabels,nlabels,origstride*2,origstride*2,origstride,origstride,origstride/2,origstride/2))
+    local mod = nn.Sequential() 
+    mod:add(nn.SpatialConvolutionMM(inputsize, nhiddenunits, 1, 1))
+    mod:add(nn.ReLU(true))
+    mod:add(nn.Dropout(0.5))
+    mod:add(nn.SpatialConvolutionMM(nhiddenunits, nhiddenunits, 1, 1))
+    mod:add(nn.ReLU(true))
+    mod:add(nn.Dropout(0.5))
+    mod:add(nn.SpatialConvolutionMM(nhiddenunits, nlabels, 1, 1))
+    mod:add(nn.SpatialFullConvolution(nlabels,nlabels,origstride*2,origstride*2,origstride,origstride,origstride/2,origstride/2))
     local W = Bilinearkernel(origstride*2,nlabels,nlabels)  -- initailization to bilinear upsampling
-    model.modules[8]:get(8).weight= W
-    model.modules[8]:get(8).bias:fill(0);
-    return model
+    mod.modules[8].weight= W
+    mod.modules[8].bias:fill(0);
+    return mod
 end

@@ -15,7 +15,6 @@ dofile "train.lua"
 dofile "val.lua"
 dofile "zoomoutconstruct.lua"
 dofile "zoomoutclassifier.lua"
-dofile "coordinate.lua"
 require('Replicatedynamic.lua')
 require("initSBatchNormalization.lua")
 ---------------------------------------------
@@ -59,7 +58,6 @@ inputsize = 8320
 val = 0 
 training = 1
 freeze_zoomout = 0
-coordinate = 0
 
 if new_model then
 net = loadcaffe.load(config_file, model_file)
@@ -135,7 +133,7 @@ if model then
 end
 
 optimState = {
-  learningRate = 1e-4,
+  learningRate = 1e-5,
   weightDecay =1e-4,
   momentum = 0.9,
   dampening = 0.0,
@@ -146,6 +144,7 @@ optimMethod = optim.sgd
 --------------------
 --Zoomout Training--
 --------------------
+dofile "datatest.lua"
 if training == 1 then
 model:training()
 
@@ -158,63 +157,48 @@ end
 end
 end
 
-for k=1,3 do
-batchsize = 1 
-rand = torch.randperm(numimages)
-for jj=1, numimages do
+rand0 = torch.randperm(66843)
+rand1 = torch.randperm(numimages)
+count = 1
+for jj=1, 30000 do
     collectgarbage() 
-    local index = rand[jj]
-    local im = image.load(train_data[index])
-    local loaded = matio.load(train_gt[index]) -- be carefull, Transpose!!
-    
-    if torch.randperm(2)[2]==2 then
-    im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimsize)
+    index0  = rand0[jj]
+    index1 = rand1[count]
+    if 1 then 
+    --if torch.random(1,2) ==1 then 
+    im = image.load(coco_dir..string.sub(temp[index0],1,-5)..".jpg")
+    if im:size()[1] < 3 then goto continue end
+--    if im:size()[1] < 3 then
+--    im = torch.expand(im,3,im:size()[2],im:size()[3])
+--    end
+    temp_gt = matio.load("/share/data/vision-greg/coco/gt-voc/"..temp[index0])
+    ground = temp_gt.groundTruth[1].Segmentation
+--    ground[ground:eq(0)] = 21
+    im_proc = preprocess(im,mean_pix,fixedimsize)
     im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
-    gt_proc = preprocess_gt_deconv(image.hflip(loaded.GT:clone()),fixedimsize)
+    gt_proc = preprocess_gt_deconv(ground,fixedimsize)
     gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
-    else      
+    else
+    im = image.load(train_data[index1])
+    loaded = matio.load(train_gt[index1]) -- be carefull, Transpose!! 
     im_proc = preprocess(im,mean_pix,fixedimsize)
     im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
     gt_proc = preprocess_gt_deconv(loaded.GT,fixedimsize)
     gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
-    end
---[[
-    if coordinate then
-        if im:size()[2] > im:size()[3] then
-        s1 = 84
-        s2 = 64
-        else
-        s1 = 64
-        s2 = 84
-        end 
-        local cord_x = coordinate_x(s1,s2)
-        local cord_y = coordinate_y(s1,s2)
+    count = count + 1
+    end 
 
-        local x = cord_x:resize(1,1,s1,s2)
-        local y = cord_y:resize(1,1,s1,s2)
-        model:get(76):insert(x,1)
-        model:get(76):insert(y,1)
-    end
---]]
     train(model, im_proc:cuda(), gt_proc:cuda())
-    im = nil
     im_proc = nil
     gt_proc = nil
     loaded = nil
---[[
-    if coordinate then
-    model:get(76):remove(1)
-    model:get(76):remove(1)
-    end
---]]
     collectgarbage()
+   ::continue::
+end
+end
 
-end
-end
-end
-torch.save("model.net",model)
 model:evaluate()
 s,sgt = load_data(image_path)
 validate(model)
+torch.save("model.net",model)
 
---torch.save("model.net",model)

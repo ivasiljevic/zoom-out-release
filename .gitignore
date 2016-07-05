@@ -6,3 +6,5 @@ slurm*
 *.sh
 *.net
 *.out
+/archive
+*.m
