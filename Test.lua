@@ -25,7 +25,7 @@ model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet
 config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
 train_file = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 classifier_path = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
-model_path = "results/model.net"
+model_path = "/share/data/vision-greg/ivas/model.net"
 normalize_path = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 --------------------------------------------
@@ -191,7 +191,6 @@ if opt.train_val == 1 then
         end
     end
 end
-
 
 model:evaluate()
 s,sgt = load_data(image_path)

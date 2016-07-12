@@ -26,7 +26,8 @@ model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet
 config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
 train_file = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 classifier_path = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
-model_path = "model.net"
+--model_path = "model.net"
+model_path = "/share/data/vision-greg/ivas/model.net"
 normalize_path = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 
@@ -135,8 +136,8 @@ if model then
 end
 
 optimState = {
-  learningRate = 1e-4,
-  weightDecay =1e-4,
+  learningRate = 1e-5,
+  weightDecay =1e-5,
   momentum = 0.9,
   dampening = 0.0,
   learningRateDecay =1e-4 
@@ -212,7 +213,7 @@ for jj=1, numimages do
 end
 end
 end
-torch.save("model.net",model)
+--torch.save("model.net",model)
 model:evaluate()
 s,sgt = load_data(image_path)
 validate(model)

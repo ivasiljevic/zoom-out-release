@@ -36,6 +36,7 @@ cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Options')
 cmd:option('-new_model',0,"Create new model or load pre-trained")
+cmd:option('-epoch_num',0,"Check what epoch number")
 cmd:text()
 opt = cmd:parse(arg)
 
@@ -53,7 +54,6 @@ origstride =4
 nlabels = 21  
 nhiddenunits = 1000
 inputsize = 8320
---inputsize = 8256
 --train or val?
 val = 0 
 training = 1
@@ -133,7 +133,7 @@ if model then
 end
 
 optimState = {
-  learningRate = 1e-5,
+  learningRate = 1e-4,
   weightDecay =1e-4,
   momentum = 0.9,
   dampening = 0.0,
@@ -157,13 +157,20 @@ end
 end
 end
 
+possible_epoch = 25000
+
+if epoch_num == 0 then
 rand0 = torch.randperm(66843)
-rand1 = torch.randperm(numimages)
+torch.save("index.txt",rand0)
 count = 1
-for jj=1, 30000 do
+else
+rand0 = torch.load("index.txt")
+count = possible_epoch+1
+end
+
+for jj=1, 25000 do
     collectgarbage() 
-    index0  = rand0[jj]
-    index1 = rand1[count]
+    index0  = rand0[count]
     if 1 then 
     --if torch.random(1,2) ==1 then 
     im = image.load(coco_dir..string.sub(temp[index0],1,-5)..".jpg")
