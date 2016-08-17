@@ -13,6 +13,7 @@ dofile "dataset.lua"
 dofile "preprocess.lua"
 dofile "train.lua"
 dofile "val.lua"
+dofile "coordinate.lua"
 dofile "zoomoutconstruct.lua"
 dofile "zoomoutclassifier.lua"
 require('Replicatedynamic.lua')
@@ -25,7 +26,8 @@ model_file='/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet
 config_file='/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
 train_file = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 classifier_path = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
-model_path = "model.net"
+--model_path = "model.net"
+--model_path = "/share/data/vision-greg/ivas/model.net"
 normalize_path = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 
@@ -35,8 +37,8 @@ image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Options')
-cmd:option('-new_model',0,"Create new model or load pre-trained")
-cmd:option('-epoch_num',0,"Check what epoch number")
+cmd:option('-new_model',1,"Create new model or load pre-trained")
+cmd:option('-epoch_num',1,"Check what epoch number")
 cmd:text()
 opt = cmd:parse(arg)
 
@@ -59,7 +61,7 @@ val = 0
 training = 1
 freeze_zoomout = 0
 
-if new_model then
+if new_model==1 then
 net = loadcaffe.load(config_file, model_file)
 --------------------------------------------
 -----Set up the Classifier network---------
@@ -103,7 +105,9 @@ end
 --]]
 model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
 end
-if new_model == 0 then model = torch.load(model_path) end
+if new_model == 0 then 
+print("Loading old model")
+model = torch.load(model_path) end
 
 criterion = cudnn.SpatialCrossEntropyCriterion()
 criterion:cuda()
@@ -147,7 +151,7 @@ optimMethod = optim.sgd
 dofile "datatest.lua"
 if training == 1 then
 model:training()
-
+print("Training model.")
 if freeze_zoomout then
 for i, m in ipairs(model.modules) do
    if torch.type(m):find('Convolution') then
@@ -157,21 +161,21 @@ end
 end
 end
 
-possible_epoch = 25000
-
-if epoch_num == 0 then
+possible_epoch = 35000
+--if epoch_num == 0 then
 rand0 = torch.randperm(66843)
-torch.save("index.txt",rand0)
-count = 1
-else
-rand0 = torch.load("index.txt")
-count = possible_epoch+1
-end
+--torch.save("index.txt",rand0)
+--count = 1
+--else
+--rand0 = torch.load("index.txt")
+--count = possible_epoch+1
+--end
 
+count = 1
 for jj=1, 25000 do
     collectgarbage() 
     index0  = rand0[count]
-    if 1 then 
+    --if 1 then 
     --if torch.random(1,2) ==1 then 
     im = image.load(coco_dir..string.sub(temp[index0],1,-5)..".jpg")
     if im:size()[1] < 3 then goto continue end
@@ -181,10 +185,13 @@ for jj=1, 25000 do
     temp_gt = matio.load("/share/data/vision-greg/coco/gt-voc/"..temp[index0])
     ground = temp_gt.groundTruth[1].Segmentation
 --    ground[ground:eq(0)] = 21
-    im_proc = preprocess(im,mean_pix,fixedimsize)
+    im_proc = preprocess(im,mean_pix)
     im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
-    gt_proc = preprocess_gt_deconv(ground,fixedimsize)
+    gt_proc = preprocess_gt_deconv(ground)
     gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
+temp_gt = nil
+ground = nil
+--[[
     else
     im = image.load(train_data[index1])
     loaded = matio.load(train_gt[index1]) -- be carefull, Transpose!! 
@@ -192,20 +199,23 @@ for jj=1, 25000 do
     im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
     gt_proc = preprocess_gt_deconv(loaded.GT,fixedimsize)
     gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
-    count = count + 1
-    end 
+--]]
+   -- end 
+count = count + 1
+print(im_proc:size())
+print(gt_proc:size())
+
+im = nil
 
     train(model, im_proc:cuda(), gt_proc:cuda())
     im_proc = nil
     gt_proc = nil
-    loaded = nil
     collectgarbage()
    ::continue::
 end
 end
-
 model:evaluate()
 s,sgt = load_data(image_path)
 validate(model)
-torch.save("model.net",model)
+--torch.save("model.net",model)
 

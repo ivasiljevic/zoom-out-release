@@ -3,7 +3,9 @@
 function train(model,inputs, targets)
     epoch = epoch or 1
     -- do one epoch
-    print("==> online epoch # " .. epoch ..']')
+    if epoch % 500 == 0 then
+        print("==> online epoch # " .. epoch ..']')
+    end
     -- create closure to evaluate f(X) and df/dX
     local feval = function(x)
         if x ~= parameters then

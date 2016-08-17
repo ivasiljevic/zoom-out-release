@@ -8,3 +8,4 @@ slurm*
 *.out
 /archive
 *.m
+/archive

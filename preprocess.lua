@@ -1,6 +1,6 @@
 --Defines the preprocessing functions needed for zoomout model.
 
-function preprocess(im, mean_pix,fixedimsize)
+function preprocess(im, mean_pix)
     imheight = fixedimh
     imwidth = fixedwid
     if im:size()[2] > im:size()[3] then
@@ -36,7 +36,7 @@ function preprocess_batch(im, mean_pix,fixedwid,fixedimh)
     return im4
 end
 
-function preprocess_gt_deconv(im,fixedimsize)
+function preprocess_gt_deconv(im)
    imheight = fixedimh
    imwidth = fixedwid
     if im:size()[1] > im:size()[2] then
