@@ -11,7 +11,7 @@ function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 		    lastdW = net:get(i).dW
 		    stride[i] = stride[i-1]*lastdW
 	    else -- for the layers that they don't have dW i.e. Relu
-	    	stride[i] = stride[i-1]*lastdW		
+	    	stride[i] = stride[i-1]		
 	    end
     end
 
