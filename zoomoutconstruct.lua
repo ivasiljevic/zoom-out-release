@@ -70,19 +70,9 @@ function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 	    repl = nn.Replicatedynamic(2,4)({repl,imtranspose})
 	    output = nn.Transpose({3, 1},{2,4})(repl)
 	    Join = nn.JoinTable(2)({Join,output})
-    end
---[[
-    coordinate = 1
-    if coordinate then
-    cord_x = coordinate_x(Join:size()[3], Join:size()[4])
-    cord_y = coordinate_y(Join:size()[3], Join:size()[4])
-    x = cord_x:resize(1,1,Join:size()[3],Join:size()[4])
-    y = cord_y:resize(1,1,Join:size()[3],Join:size()[4])
-    Join = torch.cat(Join, y, 2)
-    Join = torch.cat(Join, x, 2)
-    end
---]]
-    output = clsmodel(Join)
+   end
+
+   output = clsmodel(Join)
     zoomout_model = nn.gModule({iminput}, {output})
     output = nil
     globalfeats = nil
