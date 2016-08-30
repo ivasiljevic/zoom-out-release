@@ -12,10 +12,9 @@ require 'optim'
 dofile "dataset.lua"
 dofile "preprocess.lua"
 dofile "train.lua"
-dofile "val.lua"
+dofile "../validate/val.lua"
 dofile "zoomoutconstruct.lua"
 dofile "zoomoutclassifier.lua"
-dofile "coordinate.lua"
 require('Replicatedynamic.lua')
 require("initSBatchNormalization.lua")
 ---------------------------------------------
@@ -35,7 +34,7 @@ image_path = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Options')
-cmd:option('-new_model',0,"Create new model or load pre-trained")
+cmd:option('-new_model',1,"Create new model or load pre-trained")
 cmd:option('-global', 1, "Include global features")
 cmd:option('-origstride', 4, "Specify zoomout model stride")
 cmd:option('-nlabels', 21,"Specify number of GT labels")
