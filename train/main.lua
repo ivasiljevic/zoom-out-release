@@ -65,7 +65,6 @@ nhiddenunits = opt.nhiddenunits
 downsample = opt.downsample
 fixedimh = opt.fixedh
 fixedwid = opt.fixedw
-coordinate = opt.coord
 --Load Dataset
 train_data, train_gt = load_data(train_file)
 mean_pix = {103.939, 116.779, 123.68} -- mean over PASCAL VOC dataset
