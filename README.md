@@ -4,7 +4,7 @@
 
 Zoomout is a convolutional neural network architecture for semantic segmentation.  It takes advantage of a pre-trained classifier to compute zoomout features, which are intermediate feature maps that have been upsampled to be the same size as the input.  Then, these features are fed into a classifier that outputs a posterior distribution over every pixel in the image.  
 
-For details, please consult the paper here - http://arxiv.org/pdf/1412.0774.pdf 
+For details, please consult the paper here - http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Mostajabi_Feedforward_Semantic_Segmentation_2015_CVPR_paper.pdf 
 
 ## Dependencies
 Zoomout requires the following Torch libraries:
@@ -67,4 +67,4 @@ Val.lua calculates the predicted segmentation masks which are saved as .mat file
 # To-Do
 Example segmentations?
 Weakly supervised version?
-Images/visualizations 
+Images/visualizations
