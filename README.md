@@ -2,7 +2,9 @@
 
 ##Introduction
 
-Zoomout is a convolutional neural network architecture for semantic segmentation.  It takes advantage of a pre-trained classifier to compute zoomout features, which are intermediate feature maps that have been upsampled to be the same size as the input.  Then, these features are fed into a classifier that outputs a posterior distribution over every pixel in the image.  
+Zoomout is a convolutional neural network architecture for semantic segmentation. It maps small image elements (pixels/superpixels)
+to rich feature representations extracted from a sequence of nested regions of increasing extent. These regions are obtained by "zooming out" from the pixel
+all the way to scene-level resolution. Then, these features are fed into a classifier that outputs a posterior distribution over every pixel in the image.  
 
 For details, please consult the CVPR paper: http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Mostajabi_Feedforward_Semantic_Segmentation_2015_CVPR_paper.pdf 
 
