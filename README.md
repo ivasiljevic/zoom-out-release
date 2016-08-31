@@ -8,6 +8,7 @@ For details, please consult the paper here - http://arxiv.org/pdf/1412.0774.pdf
 
 ## Dependencies
 Zoomout requires the following Torch libraries:
+
 + matio
 + cunn
 + nngraph
@@ -23,6 +24,7 @@ Include script to download PASCAL VOC images, or short instructions on how to ge
 ## Building the Zoomout model
 Our zoomout architecture was built on top of the VGG-16 model, but you can pass the zoomout constructor any appropriate model (e.g. ResNet).  We take a look at the arguments in turn:
 `zoomoutconstruct(net,clsmodel,downsample,zlayers,global)`
+
 + clsmodel - this is where the classifier you are building zoomout from goes.
 
 (Short description of zoomout construct, unsure of what we have to change for now).
@@ -48,6 +50,7 @@ Without a CRF, the current architecture achieves 70% mean intersection-over-unio
 
 ## Training 
 The training steps are as follows (I need to flesh this out):
+
 1. Load data
 2. Construct zoomout feature extractor
 3. Construct the pixel classifier
