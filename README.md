@@ -26,15 +26,15 @@ There are several options available to building the zoomout architecture, and tw
 
 ## Accuracy
 Without a CRF, the current architecture achieves 70% mean intersection-over-union (MIOU) on the PASCAL VOC 2012 challenge. Adding a dense CRF on top (include ref) increases accuracy to 72.XX%.
-
 (Include a pretrained model, size considerations?) 
 
 ## Training 
-Currently only works on batchsize = 1,should allow arbitrary batch size
-Mention that it's currently doing horizontal flips. 
+The script for training is included in train.lua, currently we are using stochastic gradient descent with momentum (0.9) but any optimizer should work (e.g. Adam).  The only data augmentation used is horizontal flips, each training image is flipped with probability 0.5. The script main.lua does the following: replicates our experimental setup, using VGG-16 as the base classifier and training end-to-end. After about 3-4 epochs, training from scratch should lead to a model with 66% MIOU. 
 
-Training from scratch with VGG-16 as the classifier base and training end-to-end, can get over 65% MIOU in 3 epochs.
+Issues:
+Currently only works on batchsize = 1,should allow arbitrary batch size
 
 ## Validation
-Evaluate using matlab scripts.  Saving .mat files.
+Val.lua calculates the predicted segmentation masks which are saved as .mat files. The matlab scripts mapDataSets.m and valIOU.m (need to rewrite these?) will then calculate MIOU over each class and average MIOU. Usage: after training and validation is complete, run matlab -r valIOU to see score. 
+
  
