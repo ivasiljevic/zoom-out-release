@@ -3,22 +3,29 @@
 ##Introduction
 
 Zoomout is a convolutional neural network architecture for semantic segmentation.  It takes advantage of a pre-trained classifier to compute zoomout features, which are intermediate feature maps that have been upsampled to be the same size as the input.  Then, these features are fed into a classifier that outputs a posterior distribution over every pixel in the image.  
-For details, please consult the ArXiv paper here - http://arxiv.org/pdf/1412.0774.pdf 
+
+For details, please consult the paper here - http://arxiv.org/pdf/1412.0774.pdf 
 
 ## Dependencies
+Zoomout requires the following Torch libraries:
 + matio
 + cunn
 + nngraph
 + image
 + cudnn
-## Data Processing
-The data processing scripts are dataset.lua and preprocess.lua (located in the train subdirectory). The included data processing scripts are most relevant for the PASCAL VOC and MS COCO datasets, but can be modified for any dataset. preprocess.lua contains functions for the following: resizing images to a fixed height/width, color mean subtraction, and batch versions of those functions. 
-Dataset.lua loads VOC images and ground truth. 
 
-## Pre-trained classifier
-Our zoomout architecture was built on top of the VGG-16 model, but you can pass the zoomout constructor any appropriate model (e.g. ResNet).  (Short description of zoomout construct, unsure of what we have to change for now).
+## Data Processing
+The pipeline requires few preprocessing steps.  Preprocess.lua contains functions to resize training images to a fixed width and height and subtract the mean color, and batch and ground truth versions of these. 
+ Dataset.lua will load PASCAL VOC images, and we supply scripts in coco/ to also load MS COCO images. 
+
+Include script to download PASCAL VOC images, or short instructions on how to get them set up?
 
 ## Building the Zoomout model
+Our zoomout architecture was built on top of the VGG-16 model, but you can pass the zoomout constructor any appropriate model (e.g. ResNet).  We take a look at the arguments in turn:
+`zoomoutconstruct(net,clsmodel,downsample,zlayers,global)`
++ clsmodel - this is where the classifier you are building zoomout from goes.
+
+(Short description of zoomout construct, unsure of what we have to change for now).
 There are several options available to building the zoomout architecture, and two custom layers:
 
 + origstride - was not used ?
@@ -30,16 +37,22 @@ There are several options available to building the zoomout architecture, and tw
 + Replicatedynamic - custom replicate function
 + spatialbatchnorm - talk about precomputing the mean/stdev vectors for the spatialbatchnorm
 
+
+## Pixel classifier
+On top of the zoomout feature extractor, we have a pixel classifier that makes the final posterior probability predictions. The default classifier is a convnet with the following layers and hidden unit sizes:
+describe CNN model 
+
 ## Accuracy
 Without a CRF, the current architecture achieves 70% mean intersection-over-union (MIOU) on the PASCAL VOC 2012 challenge. Adding a dense CRF on top (include ref) increases accuracy to 72.XX%.
 (Include a pretrained model, size considerations?) 
 
 ## Training 
-Step-by-step list?
-1.
-2. 
-3. 
-4. 
+The training steps are as follows (I need to flesh this out):
+1. Load data
+2. Construct zoomout feature extractor
+3. Construct the pixel classifier
+4. Run batch/online gradient descent
+
 The script for training is included in train.lua, currently we are using stochastic gradient descent with momentum (0.9) but any optimizer should work (e.g. Adam).  The only data augmentation used is horizontal flips, each training image is flipped with probability 0.5. The script main.lua does the following: replicates our experimental setup, using VGG-16 as the base classifier and training end-to-end. After about 3-4 epochs, training from scratch should lead to a model with 66% MIOU. 
 
 Issues:
