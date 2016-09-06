@@ -20,21 +20,16 @@ Zoomout requires the following Torch libraries:
 + cudnn
 
 ## Data Processing
-The pipeline requires few preprocessing steps.  Preprocess.lua contains functions to resize training images to a fixed width and height and subtract the mean color, and batch and ground truth versions of these. 
- Dataset.lua will load PASCAL VOC images, and we supply scripts in coco/ to also load MS COCO images. 
-
-Include script to download PASCAL VOC images, or short instructions on how to get them set up?
+The zoomout pipeline requires few image pre-preprocessing steps.  
+Preprocess.lua contains functions to resize training images to a fixed width and height and subtract the mean color, including batch and ground truth versions of these functions.
+Dataset.lua will load PASCAL VOC images, and we supply scripts in coco/ to also load MS COCO images. 
 
 ## Building the Zoomout model
-Our zoomout architecture was built on top of the VGG-16 model, but you can pass the zoomout constructor any appropriate model (e.g. ResNet).  We take a look at the arguments in turn:
+Our zoomout architecture was built on top of the VGG-16 model, but you can pass the zoomout constructor any appropriate model (e.g. ResNet).  There are several options available to building the zoomout architecture:
+
 `zoomoutconstruct(net,clsmodel,downsample,zlayers,global)`
 
-+ clsmodel - this is where the classifier you are building zoomout from goes.
-
-(Short description of zoomout construct, unsure of what we have to change for now).
-There are several options available to building the zoomout architecture, and two custom layers:
-
-+ origstride - was not used ?
++ clsmodel - the classifier the zoomout model is built from
 + inputsize - feature dimension of feature extractor
 + nhiddenunits - number of hidden units in classifier on top of feature extractor 
 + downsample - how much you want to downsample from input for zoomout features, spatial upsampling (by default bilinear interpolation) brings back to original size 
@@ -43,10 +38,8 @@ There are several options available to building the zoomout architecture, and tw
 + Replicatedynamic - custom replicate function
 + spatialbatchnorm - talk about precomputing the mean/stdev vectors for the spatialbatchnorm
 
-
 ## Pixel classifier
-On top of the zoomout feature extractor, we have a pixel classifier that makes the final posterior probability predictions. The default classifier is a convnet with the following layers and hidden unit sizes:
-describe CNN model 
+On top of the zoomout feature extractor, we have a pixel classifier in zoomoutclassifier.lua that makes the final posterior probability predictions. The default classifier is a 4-layer convolutional neural network.  The last layer of the classifier is a bilinear interpolation so that the label predictions match the spatial size of the ground truth. 
 
 ## Accuracy
 Without a CRF, the current architecture achieves 70% mean intersection-over-union (MIOU) on the PASCAL VOC 2012 challenge. Adding a dense CRF on top (include ref) increases accuracy to 72.XX%.
