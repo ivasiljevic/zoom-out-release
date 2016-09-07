@@ -8,7 +8,7 @@ all the way to scene-level resolution. Then, these features are fed into a class
 
 For details, please consult the CVPR paper: http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Mostajabi_Feedforward_Semantic_Segmentation_2015_CVPR_paper.pdf 
 
-![zoomout.png](https://bitbucket.org/repo/n8qkM7/images/2923636521-zoomout.png)
+![zoomout.png](https://bitbucket.org/repo/n8qkM7/images/3302094990-zoomout.png)
 
 ## Dependencies
 Zoomout requires the following Torch libraries:
