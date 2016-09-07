@@ -17,7 +17,7 @@ function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 
 
 
-    local kersize = torch.Tensor(zlayers[#zlayers]):fill(1) -- let's fix the ker size for all layers. 
+    local kersize = torch.Tensor(zlayers[#zlayers]):fill(1) -- let's fix the ker size can be greater than 1 for larger receptive feild 
     local padsize = torch.Tensor(zlayers[#zlayers]):fill(0)
     stridesize = torch.Tensor(zlayers[#zlayers])
 
@@ -48,9 +48,9 @@ function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 			    scale = 1/stridesize[i]
 			    stridesize[i] = 1
 		    end
-		S[counter] = nn.SpatialMaxPooling(kersize[i],kersize[i],stridesize[i],stridesize[i],padsize[i],padsize[i]):cuda()(C[i])
+		S[counter] = nn.SpatialMaxPooling(kersize[i],kersize[i],stridesize[i],stridesize[i],padsize[i],padsize[i])(C[i])
 		if scale > 1 then
-			S[counter] = nn.SpatialUpSamplingNearest(scale):cuda()(S[counter])
+			S[counter] = nn.SpatialUpSamplingNearest(scale)(S[counter])
 		end
 		counter = counter + 1
 	    end
