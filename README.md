@@ -13,7 +13,6 @@ For details, please consult the CVPR paper: http://www.cv-foundation.org/openacc
 ## Dependencies
 Zoomout requires the following Torch libraries:
 
-+ matio
 + cunn
 + nngraph
 + image
