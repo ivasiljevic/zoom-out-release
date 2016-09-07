@@ -5,7 +5,7 @@ require 'nn'
 require 'cunn'
 require 'mattorch'
 require 'cudnn'
-matio = require 'matio'
+--matio = require 'matio'
 require 'loadcaffe'
 require 'xlua' 
 require 'optim' 
@@ -202,4 +202,3 @@ end
 model:evaluate()
 s,sgt = load_data(image_path)
 validate(model)
-torch.save("model.net",model)
