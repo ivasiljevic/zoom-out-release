@@ -8,7 +8,7 @@ all the way to scene-level resolution. Then, these features are fed into a class
 
 For details, please consult the CVPR paper: http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Mostajabi_Feedforward_Semantic_Segmentation_2015_CVPR_paper.pdf 
 
-![zoomout.png](https://bitbucket.org/repo/n8qkM7/images/3481931785-zoomout.png =25x50)
+![zoomout.png](https://bitbucket.org/repo/n8qkM7/images/2923636521-zoomout.png)
 
 ## Dependencies
 Zoomout requires the following Torch libraries:
@@ -57,9 +57,6 @@ The script for training is included in train.lua, currently we are using stochas
 
 Issues:
 Currently only works on batchsize = 1,should allow arbitrary batch size
-
-## Validation
-Val.lua calculates the predicted segmentation masks which are saved as .mat files. The matlab scripts mapDataSets.m and valIOU.m (need to rewrite these?) will then calculate MIOU over each class and average MIOU. Usage: after training and validation is complete, run matlab -r valIOU to see score. 
 
 # To-Do
 Example segmentations?
