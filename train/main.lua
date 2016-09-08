@@ -5,7 +5,6 @@ require 'nn'
 require 'cunn'
 require 'mattorch'
 require 'cudnn'
---matio = require 'matio'
 require 'loadcaffe'
 require 'xlua' 
 require 'optim' 
@@ -20,13 +19,13 @@ require("initSBatchNormalization.lua")
 ---------------------------------------------
 --Paths to models and normalization tensors--
 ---------------------------------------------
-model_file= '' --'/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet/VGG_ILSVRC_16_layers_fullconv.caffemodel';
-config_file= '' --'/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
-train_file = '' --'/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
-classifier_path =  '' --'/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
-model_path = '' --"/share/data/vision-greg/ivas/model.net"
-normalize_path = ''--'/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
-image_path = ''--"/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
+model_file= '' 
+config_file= ''
+train_file = '' 
+classifier_path = ''
+model_path = '' 
+normalize_path = ''
+image_path = ''
 --------------------------------------------
 --Setting up zoomout feature extractor------
 --------------------------------------------
@@ -80,9 +79,6 @@ if new_model==1 then
     meanx = loadedmeanstd[1]
     stdx = loadedmeanstd[2]
 
-    --meanx = loadedmeanstd[1][{{1,opt.inputsize}}] --normalize based on feature size
-    --stdx = loadedmeanstd[2][{{1,opt.inputsize}}]
-
     for i=1, stdx:size()[1] do
         stdx[i]=stdx[i]^2
         if stdx[i]==0 then
@@ -101,37 +97,32 @@ if new_model==1 then
         batch_norm.save_var = stdx
         batch_norm:parameters()[1]:fill(1)
         batch_norm:parameters()[2]:fill(0)
---batch_norm = nn.SpatialBatchNormalization(8320) 
        classifier:insert(batch_norm,1)
 
     model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
     print("New model constructed")
 end
 
-if new_model==0 then
+
 --Load pre-trained classifier 
+if new_model==0 then
     model = torch.load(model_path) 
     print("Pretrained model loaded.")
 end
+
 --Set up the loss function
 criterion = cudnn.SpatialCrossEntropyCriterion()
 criterion:cuda()
 model:cuda()
---------------------------------------------
----------------Validation------------------
---------------------------------------------
-if opt.train_val==0 then
-    model:evaluate()
-    s,sgt = load_data(image_path)
-    validate(model)
-end
 
+--Cleanup
 classifier = nil
 net = nil
 loadedmeanstd = nil
 meanx = nil
 stdx = nil
 batch_norm = nil
+
 --------------------------------------------
 -----------Training Setup-------------------
 --------------------------------------------
@@ -185,7 +176,7 @@ if opt.train_val == 1 then
                 gt_proc = preprocess_gt_deconv(loaded.GT)
                 gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
             end
-        --print(im_proc:size())        
+
             im = nil
             loaded = nil
 
@@ -199,6 +190,13 @@ if opt.train_val == 1 then
     end
 end
 
-model:evaluate()
-s,sgt = load_data(image_path)
-validate(model)
+--------------------------------------------
+---------------Validation------------------
+--------------------------------------------
+if opt.train_val==0 then
+    model:evaluate()
+    s,sgt = load_data(image_path)
+    validate(model)
+end
+
+
