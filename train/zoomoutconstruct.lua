@@ -70,9 +70,12 @@ function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 	    repl = nn.Replicatedynamic(2,4)({repl,imtranspose})
 	    output = nn.Transpose({3, 1},{2,4})(repl)
 	    Join = nn.JoinTable(2)({Join,output})
-   end
-
-   output = clsmodel(Join)
+    end
+    if classifier == nil then
+        output = Join
+    else
+        output = clsmodel(Join)
+    end
     zoomout_model = nn.gModule({iminput}, {output})
     output = nil
     globalfeats = nil
