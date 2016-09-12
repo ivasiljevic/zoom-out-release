@@ -71,7 +71,7 @@ function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
 	    output = nn.Transpose({3, 1},{2,4})(repl)
 	    Join = nn.JoinTable(2)({Join,output})
     end
-    if classifier == nil then
+    if clsmodel == nil then
         output = Join
     else
         output = clsmodel(Join)

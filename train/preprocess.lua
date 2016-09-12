@@ -1,11 +1,11 @@
 --Defines the preprocessing functions needed for zoomout model.
 
-function preprocess(im, mean_pix)
+function preprocess(im, mean_pix,fixedimh, fixedimwid)
     imheight = fixedimh
     imwidth = fixedwid
     if im:size()[2] > im:size()[3] then
         imwidth = fixedimh
-        imheight = fixedwid
+        imheight = fixedimwid
     end
     local im3 = image.scale(im:float(),imwidth,imheight,'bilinear')*255
      -- RGB2BGR
@@ -20,9 +20,9 @@ function preprocess(im, mean_pix)
     return im4
 end
 
-function preprocess_batch(im, mean_pix,fixedwid,fixedimh)
+function preprocess_batch(im, mean_pix,fixedimwid,fixedimh)
     -- rescale the image
-    imwidth = fixedwid 
+    imwidth = fixedimwid 
     imheight= fixedimh
     local im3 = image.scale(im:float(),imwidth,imheight,'bilinear')*255
     -- RGB2BGR

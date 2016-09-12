@@ -62,7 +62,7 @@ nlabels = opt.nlabels
 nhiddenunits = opt.nhiddenunits
 downsample = opt.downsample
 fixedimh = opt.fixedh
-fixedwid = opt.fixedw
+fixedimwid = opt.fixedw
 --Load Dataset
 train_data, train_gt = load_data(train_file)
 mean_pix = {103.939, 116.779, 123.68} -- mean over PASCAL VOC dataset
@@ -166,12 +166,12 @@ if opt.train_val == 1 then
             local loaded = matio.load(train_gt[index])
             --Do random flips 
             if torch.randperm(2)[2]==2 then
-                im_proc = preprocess(image.hflip(im:clone()),mean_pix)
+                im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimh,fixedimwid)
                 im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
                 gt_proc = preprocess_gt_deconv(image.hflip(loaded.GT:clone()))
                 gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
             else      
-                im_proc = preprocess(im,mean_pix)
+                im_proc = preprocess(im,mean_pix,fixedimh,fixedimwid)
                 im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
                 gt_proc = preprocess_gt_deconv(loaded.GT)
                 gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
