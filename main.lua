@@ -8,24 +8,25 @@ require 'cudnn'
 require 'loadcaffe'
 require 'xlua' 
 require 'optim' 
-dofile "dataset.lua"
-dofile "preprocess.lua"
+dofile "data/dataset.lua"
+dofile "utils/preprocess.lua"
 dofile "train.lua"
-dofile "../validate/val.lua"
-dofile "zoomoutconstruct.lua"
-dofile "zoomoutclassifier.lua"
-require('Replicatedynamic.lua')
-require("initSBatchNormalization.lua")
+dofile "validate/val.lua"
+dofile "model/zoomout_construct.lua"
+dofile "model/zoomout_classifier.lua"
+require('utils/Replicatedynamic.lua')
+require("utils/initSBatchNormalization.lua")
+matio = require 'matio'
 ---------------------------------------------
 --Paths to models and normalization tensors--
 ---------------------------------------------
-model_file= '' 
-config_file= ''
-train_file = '' 
-classifier_path = ''
-model_path = '' 
-normalize_path = ''
-image_path = ''
+MODEL_FILE = '/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet/VGG_ILSVRC_16_layers_fullconv.caffemodel'
+CONFIG_FILE = '/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt'
+DATA_PATH = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
+CLASSIFIER_PATH = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
+MODEL_PATH = "/share/data/vision-greg/ivas/model.net"
+NORM_PATH = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
+IMAGE_PATH = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 --------------------------------------------
 --Setting up zoomout feature extractor------
 --------------------------------------------
@@ -62,19 +63,21 @@ nlabels = opt.nlabels
 nhiddenunits = opt.nhiddenunits
 downsample = opt.downsample
 fixedimh = opt.fixedh
-fixedimwid = opt.fixedw
---Load Dataset
-train_data, train_gt = load_data(train_file)
+fixedimw = opt.fixedw
+
+-- Load Dataset
+train_data, train_gt = load_data(DATA_PATH)
+
 mean_pix = {103.939, 116.779, 123.68} -- mean over PASCAL VOC dataset
-fixedimsize = 256
 zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36} --don't train classifier
+
 --------------------------------------------
 -----Set up the Classifier network---------
 --------------------------------------------
 if new_model==1 then
-    net = loadcaffe.load(config_file, model_file)
-    classifier = zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
-    loadedmeanstd = torch.load(normalize_path)
+    net = loadcaffe.load(CONFIG_FILE, MODEL_FILE)
+    classifier = zoomout_classifier(origstride,nlabels,nhiddenunits,inputsize)
+    loadedmeanstd = torch.load(NORM_PATH)
     
     meanx = loadedmeanstd[1]
     stdx = loadedmeanstd[2]
@@ -99,14 +102,14 @@ if new_model==1 then
         batch_norm:parameters()[2]:fill(0)
        classifier:insert(batch_norm,1)
 
-    model = zoomoutconstruct(net,classifier,downsample,zlayers,global)
+    model = zoomout_construct(net,classifier,downsample,zlayers,global)
     print("New model constructed")
 end
 
 
 --Load pre-trained classifier 
 if new_model==0 then
-    model = torch.load(model_path) 
+    model = torch.load(MODEL_PATH) 
     print("Pretrained model loaded.")
 end
 
@@ -166,14 +169,14 @@ if opt.train_val == 1 then
             local loaded = matio.load(train_gt[index])
             --Do random flips 
             if torch.randperm(2)[2]==2 then
-                im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimh,fixedimwid)
+                im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimh,fixedimw)
                 im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
-                gt_proc = preprocess_gt_deconv(image.hflip(loaded.GT:clone()))
+                gt_proc = preprocess_gt_deconv(image.hflip(loaded.GT:clone()),fixedimh, fixedimw)
                 gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
             else      
-                im_proc = preprocess(im,mean_pix,fixedimh,fixedimwid)
+                im_proc = preprocess(im,mean_pix,fixedimh,fixedimw)
                 im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
-                gt_proc = preprocess_gt_deconv(loaded.GT)
+                gt_proc = preprocess_gt_deconv(loaded.GT,fixedimh, fixedimw)
                 gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
             end
 
@@ -195,7 +198,7 @@ end
 --------------------------------------------
 if opt.train_val==0 then
     model:evaluate()
-    s,sgt = load_data(image_path)
+    s,sgt = load_data(IMAGE_PATH)
     validate(model)
 end
 

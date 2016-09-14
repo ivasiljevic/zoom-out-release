@@ -1,5 +1,5 @@
 
-function zoomoutconstruct(net,clsmodel,downsample,zlayers,global)
+function zoomout_construct(net,clsmodel,downsample,zlayers,global)
 
     net:evaluate()	
 

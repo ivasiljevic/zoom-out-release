@@ -30,3 +30,6 @@ function load_data(filePath)
     numimages = #imlist
     return s, sgt
 end
+
+
+

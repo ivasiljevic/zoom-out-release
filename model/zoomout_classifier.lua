@@ -1,6 +1,6 @@
 --Constructs classifier model.
 
-function zoomoutclassifier(origstride,nlabels,nhiddenunits,inputsize)
+function zoomout_classifier(origstride,nlabels,nhiddenunits,inputsize)
     local mod = nn.Sequential() 
     mod:add(nn.SpatialConvolutionMM(inputsize, nhiddenunits, 1, 1))
     mod:add(nn.ReLU(true))

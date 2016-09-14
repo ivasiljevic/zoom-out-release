@@ -2,7 +2,7 @@
 
 function preprocess(im, mean_pix,fixedimh, fixedimwid)
     imheight = fixedimh
-    imwidth = fixedwid
+    imwidth = fixedimwid
     if im:size()[2] > im:size()[3] then
         imwidth = fixedimh
         imheight = fixedimwid
@@ -36,13 +36,14 @@ function preprocess_batch(im, mean_pix,fixedimwid,fixedimh)
     return im4
 end
 
-function preprocess_gt_deconv(im)
+function preprocess_gt_deconv(im, fixedimh, fixedwid)
    imheight = fixedimh
    imwidth = fixedwid
     if im:size()[1] > im:size()[2] then
         imwidth = fixedimh
         imheight = fixedwid
     end
+
     local im3 = image.scale(im:float(),imwidth,imheight,'simple')
     return im3
 end
