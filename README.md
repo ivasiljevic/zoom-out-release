@@ -53,11 +53,3 @@ The training steps are as follows (I need to flesh this out):
 4. Run batch/online gradient descent
 
 The script for training is included in train.lua, currently we are using stochastic gradient descent with momentum (0.9) but any optimizer should work (e.g. Adam).  The only data augmentation used is horizontal flips, each training image is flipped with probability 0.5. The script main.lua does the following: replicates our experimental setup, using VGG-16 as the base classifier and training end-to-end. After about 3-4 epochs, training from scratch should lead to a model with 66% MIOU. 
-
-Issues:
-Currently only works on batchsize = 1,should allow arbitrary batch size
-
-# To-Do
-Example segmentations?
-Weakly supervised version?
-Images/visualizations

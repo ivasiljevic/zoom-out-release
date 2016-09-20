@@ -8,10 +8,10 @@ require 'cudnn'
 require 'loadcaffe'
 require 'xlua' 
 require 'optim' 
-dofile "../train/preprocess.lua"
-dofile "../train/Replicatedynamic.lua"
-dofile "../train/initSBatchNormalization.lua"
-dofile "../train/zoomoutconstruct.lua"
+dofile "../utils/preprocess.lua"
+dofile "../utils/Replicatedynamic.lua"
+dofile "../utils/initSBatchNormalization.lua"
+dofile "../model/zoomout_construct.lua"
 
 MODEL_FILE  = '/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagenet/VGG_ILSVRC_16_layers_fullconv.caffemodel';
 CONFIG_FILE = '/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt';
@@ -25,9 +25,9 @@ global = 1
 clsmodel = nil -- No classifier, just zoomout features
 
 -- Load pre-trained classifier such as VGG-16
-net = loadcaffe.load(config_file, model_file)
+net = loadcaffe.load(CONFIG_FILE, MODEL_FILE)
 -- Create zoomout model from pre-trained classifier
-zoomout_model = zoomoutconstruct(net, clsmodel, downsample, zlayers, global)
+zoomout_model = zoomout_construct(net, clsmodel, downsample, zlayers, global)
 
 sample_image = image.load("02.jpg")
 

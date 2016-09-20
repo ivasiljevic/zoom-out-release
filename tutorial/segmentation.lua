@@ -8,9 +8,9 @@ require 'cudnn'
 require 'loadcaffe'
 require 'xlua' 
 require 'optim' 
-dofile "../train/preprocess.lua"
-dofile "../train/Replicatedynamic.lua"
-dofile "../train/initSBatchNormalization.lua"
+dofile "../utils/preprocess.lua"
+dofile "../utils/Replicatedynamic.lua"
+dofile "../utils/initSBatchNormalization.lua"
 
 MODEL_PATH = "/share/data/vision-greg/ivas/model.net" 
 
@@ -22,7 +22,6 @@ model = torch.load(MODEL_PATH)
 sample_image = image.load("02.jpg")
 
 model:evaluate()
-
 --Preprocess Image
 im_proc_temp = preprocess(sample_image,mean_pix,fixed_h, fixed_w)
 im_proc = torch.Tensor(1,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
