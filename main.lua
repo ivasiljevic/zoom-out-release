@@ -11,7 +11,7 @@ require 'optim'
 dofile "data/dataset.lua"
 dofile "utils/preprocess.lua"
 dofile "train.lua"
-dofile "validate/val.lua"
+dofile "val.lua"
 dofile "model/zoomout_construct.lua"
 dofile "model/zoomout_classifier.lua"
 require('utils/Replicatedynamic.lua')
@@ -24,7 +24,8 @@ MODEL_FILE = '/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagen
 CONFIG_FILE = '/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt'
 DATA_PATH = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 CLASSIFIER_PATH = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
-MODEL_PATH = "/share/data/vision-greg/ivas/model.net"
+--MODEL_PATH = "/share/data/vision-greg/ivas/model.net"
+MODEL_PATH = 'model.net'
 NORM_PATH = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 IMAGE_PATH = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 --------------------------------------------
@@ -33,7 +34,7 @@ IMAGE_PATH = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Options')
-cmd:option('-new_model',1,"Create new model or load pre-trained")
+cmd:option('-new_model',0,"Create new model or load pre-trained")
 cmd:option('-global', 1, "Include global features")
 cmd:option('-origstride', 4, "Specify zoomout model stride")
 cmd:option('-nlabels', 21,"Specify number of GT labels")
@@ -42,11 +43,11 @@ cmd:option('-inputsize', 8320, "Specify feature dimension of input to classifier
 cmd:option('-downsample',4,"Set level of downsampling")
 cmd:option('-train_val',1,"1 if training, 0 if validating")
 cmd:option('-freeze', 0, "Freeze feature extractor")
-cmd:option('-lr',1e-5, "Learning Rate")
+cmd:option('-lr',1e-4, "Learning Rate")
 cmd:option('-wd',0,"Weight Decay")
 cmd:option('-momentum',0.9,"Momentum")
 cmd:option('-dampening',0.0,"Dampening")
-cmd:option('-lrd',0,"Learning Rate Decay")
+cmd:option('-lrd',1e-4,"Learning Rate Decay")
 cmd:option('-epoch',2,"Number of Epochs")
 cmd:option('-batchsize',1,"Batch size for SGD")
 cmd:option('-fixedh',256,"Fixed height for preprocessing")

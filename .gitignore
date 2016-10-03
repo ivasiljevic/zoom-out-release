@@ -8,3 +8,4 @@ slurm*
 *.out
 /archive
 /validate
+*.m
