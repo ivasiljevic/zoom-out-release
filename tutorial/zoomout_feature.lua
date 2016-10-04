@@ -53,7 +53,7 @@ sample_image = image.load(opt.image)
 
 -- Preprocess image
 im_proc_temp = preprocess(sample_image,mean_pix,fixed_h, fixed_w)
--- Set it in a batch mode i.e. batch size = 1
+-- Set the input in a batch mode i.e. batch size = 1
 im_proc = torch.Tensor(1,3,im_proc_temp:size()[2],im_proc_temp:size()[3])
 im_proc[{{1},{},{},{}}] = im_proc_temp
 
@@ -64,5 +64,5 @@ print("Zoomout feature dimension: ", zoomout_feats:size())
 
 filename = paths.concat(opt.save, 'Zfeatures.t7')
 os.execute('mkdir -p ' .. sys.dirname(filename))
-print('==> saving model to '..filename)
+print('==> saving features to '..filename)
 torch.save(filename, zoomout_feats:float())
