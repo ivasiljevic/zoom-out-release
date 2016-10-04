@@ -26,7 +26,6 @@ if not opt then
    cmd:text()
    opt = cmd:parse(arg or {})
 end
-print '==> defining some tools'
 
 
 mean_pix = {103.939, 116.779, 123.68}

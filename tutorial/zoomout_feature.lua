@@ -28,9 +28,6 @@ if not opt then
    cmd:text()
    opt = cmd:parse(arg or {})
 end
-print '==> defining some tools'
-
-
 
 
 
