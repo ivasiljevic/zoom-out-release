@@ -21,7 +21,7 @@ if not opt then
    cmd:text()
    cmd:text('Options:')
    cmd:option('-save', 'output', 'subdirectory to save features in')
-   cmd:option('-MODEL_FILE', 'share/data/vision-greg/ivas/model.net') --Directory where the pre-trained net such as VGG-16 is located
+   cmd:option('-MODEL_FILE', '/share/data/vision-greg/ivas/model.net') --Directory where the pre-trained net such as VGG-16 is located
    cmd:option('-image', '02.jpg') -- Directory where the image is located
    cmd:text()
    opt = cmd:parse(arg or {})
@@ -35,7 +35,7 @@ fixed_h = 256
 fixed_w = 336
 
 model = torch.load(opt.MODEL_FILE) 
-sample_image = image.load("opt.image")
+sample_image = image.load(opt.image)
 
 model:evaluate()
 --Preprocess Image
