@@ -41,14 +41,14 @@ cmd:option('-nlabels', 21,"Specify number of GT labels")
 cmd:option('-nhiddenunits', 1000,"Specify number of hidden units")
 cmd:option('-inputsize', 8320, "Specify feature dimension of input to classifier")
 cmd:option('-downsample',4,"Set level of downsampling")
-cmd:option('-train_val',1,"1 if training, 0 if validating")
+cmd:option('-train_val',0,"1 if training, 0 if validating")
 cmd:option('-freeze', 0, "Freeze feature extractor")
 cmd:option('-lr',1e-4, "Learning Rate")
 cmd:option('-wd',0,"Weight Decay")
 cmd:option('-momentum',0.9,"Momentum")
 cmd:option('-dampening',0.0,"Dampening")
-cmd:option('-lrd',1e-4,"Learning Rate Decay")
-cmd:option('-epoch',2,"Number of Epochs")
+cmd:option('-lrd',0,"Learning Rate Decay")
+cmd:option('-epoch',3,"Number of Epochs")
 cmd:option('-batchsize',1,"Batch size for SGD")
 cmd:option('-fixedh',256,"Fixed height for preprocessing")
 cmd:option('-fixedw',336,"Fixed width for preprocessing")   
@@ -143,7 +143,8 @@ optimState =
     learningRateDecay = opt.lrd
     }
 
-optimMethod = optim.sgd
+--optimMethod = optim.sgd
+optimMethod = optim.adam
 ------------------------------------------
 ----------Zoomout Training----------------
 ------------------------------------------
