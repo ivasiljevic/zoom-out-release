@@ -8,7 +8,7 @@ require 'cudnn'
 require 'loadcaffe'
 require 'xlua' 
 require 'optim' 
-dofile "data/dataset.lua"
+dofile "data/load_coco.lua"
 dofile "utils/preprocess.lua"
 dofile "train.lua"
 dofile "val.lua"
@@ -34,7 +34,7 @@ IMAGE_PATH = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 cmd = torch.CmdLine()
 cmd:text()
 cmd:text('Options')
-cmd:option('-new_model',0,"Create new model or load pre-trained")
+cmd:option('-new_model',1,"Create new model or load pre-trained")
 cmd:option('-global', 1, "Include global features")
 cmd:option('-origstride', 4, "Specify zoomout model stride")
 cmd:option('-nlabels', 21,"Specify number of GT labels")
@@ -67,7 +67,7 @@ fixedimh = opt.fixedh
 fixedimw = opt.fixedw
 
 -- Load Dataset
-train_data, train_gt = load_data(DATA_PATH)
+--train_data, train_gt = load_data(DATA_PATH)
 
 mean_pix = {103.939, 116.779, 123.68} -- mean over PASCAL VOC dataset
 zlayers = {2,4,7,9,12,14,16,19,21,23,26,28,30,36} --don't train classifier
@@ -149,6 +149,7 @@ optimMethod = optim.adam
 ----------Zoomout Training----------------
 ------------------------------------------
 if opt.train_val == 1 then
+    print("Starting to train..")
     model:training()
 
     if opt.freeze then
@@ -167,20 +168,30 @@ if opt.train_val == 1 then
         for jj=1, numimages do
             collectgarbage() 
             local index = rand[jj]
-            local im = image.load(train_data[index])
-            local loaded = matio.load(train_gt[index])
+            print(rand:size())
+            print(table.getn(im_path))
+            print(im_path[index])
+            print(index)
+            --local im = image.load(train_data[index])
+            local im=image.load(COCO_DIR..string.sub(im_path[index],1,-5)..".jpg")
+            print("Not an error with im load")
+            local temp_gt=matio.load("/share/data/vision-greg/coco/gt-class/"..im_path[index])
+            print("Not an error with temp load")
+            local loaded = temp_gt.groundTruth[1].Segmentation
+            print("Not an error here")
+            print(im:size())
             --Do random flips 
-            if torch.randperm(2)[2]==2 then
-                im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimh,fixedimw)
-                im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
-                gt_proc = preprocess_gt_deconv(image.hflip(loaded.GT:clone()),fixedimh, fixedimw)
-                gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
-            else      
+            --if torch.randperm(2)[2]==2 then
+            --    im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimh,fixedimw)
+            --    im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
+            --    gt_proc = preprocess_gt_deconv(image.hflip(loaded:clone()),fixedimh, fixedimw)
+            --    gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
+            --else      
                 im_proc = preprocess(im,mean_pix,fixedimh,fixedimw)
                 im_proc = im_proc:reshape(1, im_proc:size()[1],im_proc:size()[2],im_proc:size()[3])
-                gt_proc = preprocess_gt_deconv(loaded.GT,fixedimh, fixedimw)
+                gt_proc = preprocess_gt_deconv(loaded,fixedimh, fixedimw)
                 gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
-            end
+            --end
 
             im = nil
             loaded = nil
@@ -195,13 +206,4 @@ if opt.train_val == 1 then
     end
 end
 
---------------------------------------------
----------------Validation------------------
---------------------------------------------
-if opt.train_val==0 then
-    model:evaluate()
-    s,sgt = load_data(IMAGE_PATH)
-    validate(model)
-end
-
-
+--]]
