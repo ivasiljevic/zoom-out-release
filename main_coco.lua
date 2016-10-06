@@ -167,19 +167,12 @@ if opt.train_val == 1 then
 
         for jj=1, numimages do
             collectgarbage() 
+            print(jj)
             local index = rand[jj]
-            print(rand:size())
-            print(table.getn(im_path))
-            print(im_path[index])
-            print(index)
             --local im = image.load(train_data[index])
             local im=image.load(COCO_DIR..string.sub(im_path[index],1,-5)..".jpg")
-            print("Not an error with im load")
             local temp_gt=matio.load("/share/data/vision-greg/coco/gt-class/"..im_path[index])
-            print("Not an error with temp load")
             local loaded = temp_gt.groundTruth[1].Segmentation
-            print("Not an error here")
-            print(im:size())
             --Do random flips 
             --if torch.randperm(2)[2]==2 then
             --    im_proc = preprocess(image.hflip(im:clone()),mean_pix,fixedimh,fixedimw)
@@ -192,7 +185,8 @@ if opt.train_val == 1 then
                 gt_proc = preprocess_gt_deconv(loaded,fixedimh, fixedimw)
                 gt_proc = gt_proc:resize(1,gt_proc:size()[1],gt_proc:size()[2])
             --end
-
+            print(im_proc:size())
+            print(gt_proc:size())
             im = nil
             loaded = nil
 
