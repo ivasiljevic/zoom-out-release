@@ -170,8 +170,9 @@ if opt.train_val == 1 then
             print(jj)
             local index = rand[jj]
             --local im = image.load(train_data[index])
-            local im=image.load(COCO_DIR..string.sub(im_path[index],1,-5)..".jpg")
-            local temp_gt=matio.load("/share/data/vision-greg/coco/gt-class/"..im_path[index])
+            local im=image.load("/share/data/vision-greg/coco/train2014/"..string.sub(im_path[index],1,-5)..".jpg")
+            if im:size()[1] < 3 then goto continue end
+            local temp_gt=matio.load("/share/data/vision-greg/coco/gt-voc/"..im_path[index])
             local loaded = temp_gt.groundTruth[1].Segmentation
             --Do random flips 
             --if torch.randperm(2)[2]==2 then
@@ -195,9 +196,10 @@ if opt.train_val == 1 then
             im_proc = nil
             gt_proc = nil
             collectgarbage()
+            ::continue::
         end
     torch.save("model.net",model)
     end
 end
 
---]]
+
