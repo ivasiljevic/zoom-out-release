@@ -93,15 +93,15 @@ if new_model==1 then
 --Batch Norm for Mean/Var Subtraction
 ---------------------------------------
 
-        batch_norm = nn.initSBatchNormalization(inputsize)
-        batch_norm.running_mean=meanx
-        batch_norm.affine=false
-        batch_norm.running_var=stdx
-        batch_norm.save_mean = meanx
-        batch_norm.save_var = stdx
-        batch_norm:parameters()[1]:fill(1)
-        batch_norm:parameters()[2]:fill(0)
-       classifier:insert(batch_norm,1)
+    batch_norm = nn.initSBatchNormalization(inputsize)
+    batch_norm.running_mean=meanx
+    batch_norm.affine=false
+    batch_norm.running_var=stdx
+    batch_norm.save_mean = meanx
+    batch_norm.save_var = stdx
+    batch_norm:parameters()[1]:fill(1)
+    batch_norm:parameters()[2]:fill(0)
+    classifier:insert(batch_norm,1)
 
     model = zoomout_construct(net,classifier,downsample,zlayers,global)
     print("New model constructed")
