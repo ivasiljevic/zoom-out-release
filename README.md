@@ -2,7 +2,7 @@
 
 ##Introduction
 
-Zoomout is a convolutional neural network architecture for semantic segmentation. It maps small image elements (pixels/superpixels)
+Zoomout is a convolutional neural network architecture for semantic segmentation. It maps small image elements (pixels or superpixels)
 to rich feature representations extracted from a sequence of nested regions of increasing extent. These regions are obtained by "zooming out" from the pixel
 all the way to scene-level resolution. Then, these features are fed into a classifier that outputs a posterior distribution over every pixel in the image.  
 
@@ -20,7 +20,7 @@ Zoomout requires the following Torch libraries:
 
 ## Data Processing
 The zoomout pipeline requires few image pre-preprocessing steps.  
-Preprocess.lua contains functions to resize training images to a fixed width and height and subtract the mean color, including batch and ground truth versions of these functions.
+Preprocess.lua contains functions to resize training images to a fixed width and height (and to subtract the mean color), including batch and ground truth versions of these functions.
 Dataset.lua will load PASCAL VOC images, and we supply scripts in coco/ to also load MS COCO images. 
 
 ## Building the Zoomout model
@@ -35,20 +35,19 @@ Our zoomout architecture was built on top of the VGG-16 model, but you can pass 
 + fixedimh, fixedwid - VOC images are large, so we resize to reduce spatial dimension. Depending on whether H > W or W > H
 + zlayers - specify the numbers of the layers from the pretrained classifier to use for zoomout
 + Replicatedynamic - custom replicate function
-+ spatialbatchnorm - talk about precomputing the mean/stdev vectors for the spatialbatchnorm
++ spatialbatchnorm - custom layer for mean/stdev normalization for the zoomout features, precomputed mean/stdev vectors included
 
 ## Pixel classifier
-On top of the zoomout feature extractor, we have a pixel classifier in zoomoutclassifier.lua that makes the final posterior probability predictions. The default classifier is a 4-layer convolutional neural network.  The last layer of the classifier is a bilinear interpolation so that the label predictions match the spatial size of the ground truth. 
+On top of the zoomout feature extractor, we have a pixel classifier (zoomoutclassifier.lua) that makes the final posterior probability predictions. The default classifier is a 4-layer convolutional neural network.  The last layer of the classifier is a bilinear interpolation so that the label predictions match the spatial size of the ground truth. 
 
 ## Accuracy
 Without a CRF, the current architecture achieves 70% mean intersection-over-union (MIOU) on the PASCAL VOC 2012 challenge. Adding a dense CRF on top (include ref) increases accuracy to 72.XX%.
-(Include a pretrained model, size considerations?) 
 
 ## Training 
-The training steps are as follows (I need to flesh this out):
+The training steps are as follows:
 
-1. Load data
-2. Construct zoomout feature extractor
+1. Load data (VOC or COCO)
+2. Construct zoomout feature extractor (from e.g. VGG-16)
 3. Construct the pixel classifier
 4. Run batch/online gradient descent
 
