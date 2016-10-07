@@ -41,7 +41,7 @@ Our zoomout architecture was built on top of the VGG-16 model, but you can pass 
 On top of the zoomout feature extractor, we have a pixel classifier (zoomoutclassifier.lua) that makes the final posterior probability predictions. The default classifier is a 4-layer convolutional neural network.  The last layer of the classifier is a bilinear interpolation so that the label predictions match the spatial size of the ground truth. 
 
 ## Accuracy
-Without a CRF, the current architecture achieves 70% mean intersection-over-union (MIOU) on the PASCAL VOC 2012 challenge. Adding a dense CRF on top (include ref) increases accuracy to 72.XX%.
+Without a CRF, the current architecture achieves 70% mean intersection-over-union (MIOU) on the PASCAL VOC 2012 challenge. Adding a dense CRF on top (include ref) increases accuracy to 72%.
 
 ## Training 
 The training steps are as follows:
