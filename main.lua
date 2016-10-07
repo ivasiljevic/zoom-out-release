@@ -24,8 +24,8 @@ MODEL_FILE = '/share/data/vision-greg/mlfeatsdata/caffe_temptest/examples/imagen
 CONFIG_FILE = '/home-nfs/reza/features/caffe_weighted/caffe/modelzoo/VGG_ILSVRC_16_layers_fulconv_N3.prototxt'
 DATA_PATH = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/voc12-rand-all-val_GT.mat'
 CLASSIFIER_PATH = '/share/data/vision-greg/mlfeatsdata/CV_Course/spatialcls_104epochs_normalizedmanual_deconv.t7'
---MODEL_PATH = "/share/data/vision-greg/ivas/model.net"
-MODEL_PATH = 'model.net'
+MODEL_PATH = "/share/data/vision-greg/ivas/model.net"
+--MODEL_PATH = 'model.net'
 NORM_PATH = '/share/data/vision-greg/mlfeatsdata/unifiedsegnet/Torch/convglobalmeanstd.t7'
 IMAGE_PATH = "/share/data/vision-greg/mlfeatsdata/CV_Course/voc12-val_GT.mat"
 --------------------------------------------
@@ -41,7 +41,7 @@ cmd:option('-nlabels', 21,"Specify number of GT labels")
 cmd:option('-nhiddenunits', 1000,"Specify number of hidden units")
 cmd:option('-inputsize', 8320, "Specify feature dimension of input to classifier")
 cmd:option('-downsample',4,"Set level of downsampling")
-cmd:option('-train_val',1,"1 if training, 0 if validating")
+cmd:option('-train_val',0,"1 if training, 0 if validating")
 cmd:option('-freeze', 0, "Freeze feature extractor")
 cmd:option('-lr',1e-3, "Learning Rate")
 cmd:option('-wd',0,"Weight Decay")
@@ -148,6 +148,7 @@ optimMethod = optim.adam
 ------------------------------------------
 ----------Zoomout Training----------------
 ------------------------------------------
+
 if opt.train_val == 1 then
     model:training()
 
@@ -193,15 +194,9 @@ if opt.train_val == 1 then
         end
     torch.save("model.net",model)
     end
-end
-
---------------------------------------------
----------------Validation------------------
---------------------------------------------
-if opt.train_val==0 then
+else
     model:evaluate()
     s,sgt = load_data(IMAGE_PATH)
     validate(model)
 end
-
 

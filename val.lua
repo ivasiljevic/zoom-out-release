@@ -1,7 +1,7 @@
 --Validation function.
 
 function validate(model)
-    for k=1,#imlist do
+    for k=1,#IMLIST do
         collectgarbage()
         model:evaluate()
         local im = image.load(s[k])
@@ -18,7 +18,7 @@ function validate(model)
         C,D = torch.max(im_rescale,1)
         gt = D:squeeze():double()
         matio.save('prediction/pred_'..k..'.mat',gt)
-        xlua.progress(k,#imlist)
+        xlua.progress(k,#IMLIST)
     end
 end
 

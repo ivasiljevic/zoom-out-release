@@ -25,9 +25,9 @@ function load_data(filePath)
         sgt[i]=table.concat(t);
     end
 
-    imlist = s
+    IMLIST = s
     imlistgt = sgt
-    numimages = #imlist
+    numimages = #IMLIST
     return s, sgt
 end
 
