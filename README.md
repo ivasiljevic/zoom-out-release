@@ -9,13 +9,9 @@ all the way to scene-level resolution. Then, these features are fed into a class
 For details, please consult and cite the CVPR paper: http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Mostajabi_Feedforward_Semantic_Segmentation_2015_CVPR_paper.pdf 
 
 @inproceedings{mostajabi2015feedforward,
-
   title={Feedforward semantic segmentation with zoom-out features},
-  
   author={Mostajabi, Mohammadreza and Yadollahpour, Payman and Shakhnarovich, Gregory},
-  
   booktitle={CVPR},
-  
   year={2015}
   
 }
