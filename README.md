@@ -6,7 +6,14 @@ Zoomout is a convolutional neural network architecture for semantic segmentation
 to rich feature representations extracted from a sequence of nested regions of increasing extent. These regions are obtained by "zooming out" from the pixel
 all the way to scene-level resolution. Then, these features are fed into a classifier that outputs a posterior distribution over every pixel in the image.  
 
-For details, please consult the CVPR paper: http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Mostajabi_Feedforward_Semantic_Segmentation_2015_CVPR_paper.pdf 
+For details, please consult and cite the CVPR paper: http://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Mostajabi_Feedforward_Semantic_Segmentation_2015_CVPR_paper.pdf 
+
+@inproceedings{mostajabi2015feedforward,
+  title={Feedforward semantic segmentation with zoom-out features},
+  author={Mostajabi, Mohammadreza and Yadollahpour, Payman and Shakhnarovich, Gregory},
+  booktitle={CVPR},
+  year={2015}
+}
 
 ![zoomout.png](https://bitbucket.org/repo/n8qkM7/images/3302094990-zoomout.png)
 
@@ -52,3 +59,9 @@ The training steps are as follows:
 4. Run batch/online gradient descent
 
 The script for training is included in train.lua, currently we are using stochastic gradient descent with momentum (0.9) but any optimizer should work (e.g. Adam).  The only data augmentation used is horizontal flips, each training image is flipped with probability 0.5. The script main.lua does the following: replicates our experimental setup, using VGG-16 as the base classifier and training end-to-end. After about 3-4 epochs, training from scratch should lead to a model with 66% MIOU. 
+
+## Pretrained model
+
+http://ttic.uchicago.edu/~mostajabi/files/zoomout_model.net
+
+
