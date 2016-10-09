@@ -1,8 +1,8 @@
 ## Segmentation Inference Tutorial
 
-The segmentation.lua file runs inference on a single image given a pretrained zoomout model. First, the image is preprocessed, and after it's run through the zoomout model it has a dimension of W/4 x H/4. Thus, we must upsample (here using bilinear interpolation) before taking the argmax over posterior probabilities in order to find the predicted pixelwise labels.
+The segmentation.lua file runs inference on a single image given a pretrained zoomout model. The final segmentation mask is saved as an image.
 
-The final segmentation mask is saved as an image.
+th segmentation.lua -save 'subdirectory to save the output in' -MODEL_FILE 'pretrained model' -image 'input image'
 
 ## Zoomout Feature Extraction Tutorial
 
@@ -10,4 +10,5 @@ The zoomout_feature.lua file extracts zoomout features for a single image. We lo
 
 After we extract the zoomout features, we check the dimension of the zoomout tensor.
 
+th zoomout_feature.lua -save 'subdirectory to save features in'  -MODEL_FILE 'Caffe model such as VGG-16' -CONFIG_FILE 'Caffe configuration file' -image 'input image'
  
